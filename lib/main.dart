@@ -35,11 +35,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final FlipCardCore _core = FlipCardCore();
 
+  List<String> _randomImageNames = [];
+
   @override
   void initState() {
     super.initState();
 
-    _reset();
+    _core.stream.listen((event) {
+      if (event is InitialEvent) {
+        setState(() {
+          _randomImageNames = event.randomImageNames;
+          _cardKeys.addAll(_randomImageNames.map((e) => GlobalKey<FlipCardState>()));
+          _toggleCardToFront();
+        });
+      }
+
+      if (event is CheckCardEvent) {
+        setState(() {
+          _randomImageNames = event.randomImageNames;
+          _toggleCardToFront();
+        });
+      }
+    });
   }
 
   @override
@@ -55,69 +72,48 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: StreamBuilder<List<String>>(
-            stream: _core.stream,
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return SizedBox.shrink();
-              }
-
-              return Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                children: List.generate(snapshot.requireData.length, (index) {
-                  if (snapshot.requireData[index].isEmpty) {
-                    return Container(
-                      width: 100,
-                      height: 150,
-                    );
-                  }
-
-                  return FlipCard(
-                    key: _cardKeys[index],
-                    onFlipDone: (isFront) {
-                      if (isFront) return;
-
-                      _core.toggleCard(index);
-
-                      if (_core.backCardLength >= 2) {
-                        _toggleCardToFront();
-                        _core.checkCardIsEqual();
-                      }
-                    },
-                    front: Container(
-                      width: 100,
-                      height: 150,
-                      color: Colors.orange,
-                    ),
-                    back: Container(
-                      width: 100,
-                      height: 150,
-                      child: Image.asset(
-                        snapshot.requireData[index],
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  );
-                }),
+        child: Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: List.generate(_randomImageNames.length, (index) {
+            if (_randomImageNames[index].isEmpty) {
+              return SizedBox(
+                width: 100,
+                height: 150,
               );
-            }),
+            }
+
+            return FlipCard(
+              key: _cardKeys[index],
+              onFlipDone: (isFront) {
+                if (isFront) return;
+
+                _core.toggleCard(index);
+              },
+              front: Container(
+                width: 100,
+                height: 150,
+                color: Colors.orange,
+              ),
+              back: Container(
+                width: 100,
+                height: 150,
+                child: Image.asset(
+                  _randomImageNames[index],
+                  fit: BoxFit.cover,
+                ),
+              ),
+            );
+          }),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          setState(() {
-            _reset();
-          });
+          _core.reset();
         },
         child: const Icon(Icons.refresh),
       ),
     );
-  }
-
-  void _reset() {
-    final randomImageNames = _core.reset();
-    _cardKeys.addAll(randomImageNames.map((e) => GlobalKey<FlipCardState>()));
-    _toggleCardToFront();
   }
 
   void _toggleCardToFront() {

@@ -2,7 +2,25 @@ import 'dart:async';
 
 import 'package:flip_card_game/asset_name.dart';
 
+abstract class FlipCardEvent {}
+
+class InitialEvent extends FlipCardEvent {
+  InitialEvent({required this.randomImageNames});
+
+  final List<String> randomImageNames;
+}
+
+class CheckCardEvent extends FlipCardEvent {
+  CheckCardEvent({required this.randomImageNames});
+
+  final List<String> randomImageNames;
+}
+
 class FlipCardCore {
+  FlipCardCore() {
+    reset();
+  }
+
   final _imageNames = [
     AssetImageName.orange,
     AssetImageName.banana,
@@ -15,11 +33,11 @@ class FlipCardCore {
 
   final List<String> _randomImageNames = [];
 
-  Stream<List<String>> get stream => _streamController.stream;
+  Stream<FlipCardEvent> get stream => _streamController.stream;
 
-  final StreamController<List<String>> _streamController = StreamController();
+  final StreamController<FlipCardEvent> _streamController = StreamController();
 
-  List<String> reset() {
+  void reset() {
     // add 2 times
     _randomImageNames.clear();
     _randomImageNames.addAll(_imageNames);
@@ -28,16 +46,16 @@ class FlipCardCore {
     // shuffle
     _randomImageNames.shuffle();
 
-    _streamController.add(_randomImageNames);
-
-    return _randomImageNames;
+    _streamController.add(InitialEvent(randomImageNames: _randomImageNames));
   }
 
   void toggleCard(int index) {
     _backCardIndexes.add(index);
+
+    _checkCardIsEqual();
   }
 
-  void checkCardIsEqual() {
+  void _checkCardIsEqual() {
     if (_backCardIndexes.length < 2) return;
 
     String firstCardName = _randomImageNames[_backCardIndexes[0]];
@@ -49,7 +67,7 @@ class FlipCardCore {
 
     _backCardIndexes.clear();
 
-    _streamController.add(_randomImageNames);
+    _streamController.add(CheckCardEvent(randomImageNames: _randomImageNames));
   }
 
   void dispose() {
