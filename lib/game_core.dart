@@ -18,7 +18,9 @@ class CheckCardEvent extends FlipCardEvent {
 
 class FlipCardCore {
   FlipCardCore() {
-    reset();
+    _streamController.onListen = () {
+      reset();
+    };
   }
 
   final _imageNames = [
@@ -35,7 +37,7 @@ class FlipCardCore {
 
   Stream<FlipCardEvent> get stream => _streamController.stream;
 
-  final StreamController<FlipCardEvent> _streamController = StreamController();
+  final StreamController<FlipCardEvent> _streamController = StreamController.broadcast();
 
   void reset() {
     // add 2 times
