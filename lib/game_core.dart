@@ -1,11 +1,14 @@
 import 'dart:async';
 
 import 'package:flip_card_game/asset_name.dart';
+import 'package:bloc/bloc.dart';
 
 abstract class FlipCardGameState {}
 
-class InitialState extends FlipCardGameState {
-  InitialState({required this.randomImageNames});
+class InitialState extends FlipCardGameState {}
+
+class ResetState extends FlipCardGameState {
+  ResetState({required this.randomImageNames});
 
   final List<String> randomImageNames;
 }
@@ -16,12 +19,8 @@ class CheckCardState extends FlipCardGameState {
   final List<String> randomImageNames;
 }
 
-class FlipCardCore {
-  FlipCardCore() {
-    _streamController.onListen = () {
-      reset();
-    };
-  }
+class FlipCardCore extends Cubit<FlipCardGameState> {
+  FlipCardCore() : super(InitialState());
 
   final _imageNames = [
     AssetImageName.orange,
@@ -31,6 +30,7 @@ class FlipCardCore {
   ];
 
   final List<int> _backCardIndexes = [];
+
   int get backCardLength => _backCardIndexes.length;
 
   final List<String> _randomImageNames = [];
@@ -47,8 +47,7 @@ class FlipCardCore {
 
     // shuffle
     _randomImageNames.shuffle();
-
-    _streamController.add(InitialState(randomImageNames: _randomImageNames));
+    emit(ResetState(randomImageNames: _randomImageNames));
   }
 
   void toggleCard(int index) {
@@ -69,10 +68,6 @@ class FlipCardCore {
 
     _backCardIndexes.clear();
 
-    _streamController.add(CheckCardState(randomImageNames: _randomImageNames));
-  }
-
-  void dispose() {
-    _streamController.close();
+    emit(CheckCardState(randomImageNames: _randomImageNames));
   }
 }

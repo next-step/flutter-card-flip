@@ -33,7 +33,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final List<GlobalKey<FlipCardState>> _cardKeys = [];
 
-  final FlipCardCore _core = FlipCardCore();
+  late FlipCardCore _core;
 
   List<String> _randomImageNames = [];
 
@@ -41,8 +41,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
+    _core = FlipCardCore();
+
     _core.stream.listen((event) {
-      if (event is InitialState) {
+      if (event is ResetState) {
         setState(() {
           _randomImageNames = event.randomImageNames;
           _cardKeys.addAll(_randomImageNames.map((e) => GlobalKey<FlipCardState>()));
@@ -57,11 +59,13 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     });
+
+    _core.reset();
   }
 
   @override
   void dispose() {
-    _core.dispose();
+    _core.close();
     super.dispose();
   }
 
