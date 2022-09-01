@@ -31,6 +31,27 @@ class MyHomePage2 extends StatefulWidget {
 }
 
 class _MyHomePage2State extends State<MyHomePage2> {
+  final _imageNames = [
+    AssetImageName.orange,
+    AssetImageName.banana,
+    AssetImageName.apple,
+    AssetImageName.strawberry,
+  ];
+
+  final List<String> _randomImageNames = [];
+
+  @override
+  void initState() {
+    super.initState();
+    configureCrads();
+  }
+
+  void configureCrads() {
+    _randomImageNames.addAll(_imageNames);
+    _randomImageNames.addAll(_imageNames);
+    _randomImageNames.shuffle();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,19 +62,19 @@ class _MyHomePage2State extends State<MyHomePage2> {
         child: Wrap(
           spacing: 4,
           runSpacing: 4,
-          children: [
-           ..._buildCards(),
-          ],
+          children: _buildCards(),
         ),
       ),
     );
   }
 
   List<Widget> _buildCards() {
-    return Iterable.generate(8).map((e) => _buildFlipCard()).toList();
+    return _randomImageNames
+        .map((imageName) => _buildFlipCard(imageName))
+        .toList();
   }
 
-  FlipCard _buildFlipCard() {
+  FlipCard _buildFlipCard(String imageName) {
     return FlipCard(
       front: Container(
         width: 100,
@@ -63,9 +84,11 @@ class _MyHomePage2State extends State<MyHomePage2> {
       back: SizedBox(
         width: 100,
         height: 150,
-        child: Image.asset(AssetImageName.banana),
+        child: Image.asset(
+          imageName,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
 }
-
