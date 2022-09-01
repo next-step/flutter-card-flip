@@ -41,105 +41,27 @@ class _MyHomePage2State extends State<MyHomePage2> {
         child: Wrap(
           spacing: 4,
           runSpacing: 4,
-          children: <Widget>[
-            FlipCard(
-              front: Container(
-                width: 100,
-                height: 150,
-                color: Colors.orange,
-              ),
-              back: SizedBox(
-                width: 100,
-                height: 150,
-                child: Image.asset(AssetImageName.banana),
-              ),
-            ),
-            FlipCard(
-              front: Container(
-                width: 100,
-                height: 150,
-                color: Colors.orange,
-              ),
-              back: SizedBox(
-                width: 100,
-                height: 150,
-                child: Image.asset(AssetImageName.banana),
-              ),
-            ),
-            FlipCard(
-              front: Container(
-                width: 100,
-                height: 150,
-                color: Colors.orange,
-              ),
-              back: SizedBox(
-                width: 100,
-                height: 150,
-                child: Image.asset(AssetImageName.banana),
-              ),
-            ),
-            FlipCard(
-              front: Container(
-                width: 100,
-                height: 150,
-                color: Colors.orange,
-              ),
-              back: SizedBox(
-                width: 100,
-                height: 150,
-                child: Image.asset(AssetImageName.banana),
-              ),
-            ),
-            FlipCard(
-              front: Container(
-                width: 100,
-                height: 150,
-                color: Colors.orange,
-              ),
-              back: SizedBox(
-                width: 100,
-                height: 150,
-                child: Image.asset(AssetImageName.banana),
-              ),
-            ),
-            FlipCard(
-              front: Container(
-                width: 100,
-                height: 150,
-                color: Colors.orange,
-              ),
-              back: SizedBox(
-                width: 100,
-                height: 150,
-                child: Image.asset(AssetImageName.banana),
-              ),
-            ),
-            FlipCard(
-              front: Container(
-                width: 100,
-                height: 150,
-                color: Colors.orange,
-              ),
-              back: SizedBox(
-                width: 100,
-                height: 150,
-                child: Image.asset(AssetImageName.banana),
-              ),
-            ),
-            FlipCard(
-              front: Container(
-                width: 100,
-                height: 150,
-                color: Colors.orange,
-              ),
-              back: SizedBox(
-                width: 100,
-                height: 150,
-                child: Image.asset(AssetImageName.banana),
-              ),
-            ),
-          ]
+          children: _buildCards(),
         ),
+      ),
+    );
+  }
+
+  List<Widget> _buildCards() {
+    return Iterable.generate(8).map((e) => _buildFlipCard()).toList();
+  }
+
+  FlipCard _buildFlipCard() {
+    return FlipCard(
+      front: Container(
+        width: 100,
+        height: 150,
+        color: Colors.orange,
+      ),
+      back: SizedBox(
+        width: 100,
+        height: 150,
+        child: Image.asset(AssetImageName.banana),
       ),
     );
   }
