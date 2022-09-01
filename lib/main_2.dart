@@ -65,6 +65,14 @@ class _MyHomePage2State extends State<MyHomePage2> {
           children: _buildCards(),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _randomImageNames.shuffle();
+          });
+        },
+        child: const Icon(Icons.refresh),
+      ),
     );
   }
 
