@@ -39,6 +39,7 @@ class _MyHomePage2State extends State<MyHomePage2> {
   ];
 
   final List<String> _randomImageNames = [];
+  final List<GlobalKey<FlipCardState>> _cardKeys = [];
 
   @override
   void initState() {
@@ -50,6 +51,7 @@ class _MyHomePage2State extends State<MyHomePage2> {
     _randomImageNames.addAll(_imageNames);
     _randomImageNames.addAll(_imageNames);
     _randomImageNames.shuffle();
+    _cardKeys.addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
   }
 
   @override
@@ -69,6 +71,14 @@ class _MyHomePage2State extends State<MyHomePage2> {
         onPressed: () {
           setState(() {
             _randomImageNames.shuffle();
+
+            for (var cardKey in _cardKeys) {
+              final cardKeyState = cardKey.currentState;
+              if (cardKeyState == null) return;
+              if (!cardKeyState.isFront) {
+                cardKeyState.toggleCard();
+              }
+            }
           });
         },
         child: const Icon(Icons.refresh),
@@ -77,13 +87,15 @@ class _MyHomePage2State extends State<MyHomePage2> {
   }
 
   List<Widget> _buildCards() {
-    return _randomImageNames
-        .map((imageName) => _buildFlipCard(imageName))
-        .toList();
+    return List.generate(
+      _randomImageNames.length,
+      (index) => _buildFlipCard(index),
+    );
   }
 
-  FlipCard _buildFlipCard(String imageName) {
+  FlipCard _buildFlipCard(int index) {
     return FlipCard(
+      key: _cardKeys[index],
       front: Container(
         width: 100,
         height: 150,
@@ -93,7 +105,7 @@ class _MyHomePage2State extends State<MyHomePage2> {
         width: 100,
         height: 150,
         child: Image.asset(
-          imageName,
+          _randomImageNames[index],
           fit: BoxFit.cover,
         ),
       ),
