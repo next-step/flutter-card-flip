@@ -43,10 +43,10 @@ class _MyHomePage2State extends State<MyHomePage2> {
   @override
   void initState() {
     super.initState();
-    configureCrads();
+    configureCards();
   }
 
-  void configureCrads() {
+  void configureCards() {
     _randomImageNames.addAll(_imageNames);
     _randomImageNames.addAll(_imageNames);
     _randomImageNames.shuffle();
