@@ -153,8 +153,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _checkCardIsEqual() {
-    print('_checkCardIsEqual');
-    print(_frontCardIndexes);
     if (_frontCardIndexes.length >= 2) {
       String firstCardName = _randomImageNames[_frontCardIndexes[0]];
       String secondCardName = _randomImageNames[_frontCardIndexes[1]];

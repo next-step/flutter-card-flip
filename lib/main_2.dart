@@ -41,6 +41,7 @@ class _MyHomePage2State extends State<MyHomePage2> {
   final List<String> _randomImageNames = [];
   final List<GlobalKey<FlipCardState>> _cardKeys = [];
   int _frontCardCount = 0;
+  final List<int> _frontCardIndexes = [];
 
   @override
   void initState() {
@@ -92,10 +93,12 @@ class _MyHomePage2State extends State<MyHomePage2> {
       key: _cardKeys[index],
       onFlip: () {
         _frontCardCount++;
+        _frontCardIndexes.add(index);
       },
       onFlipDone: (isFront) {
         if (_frontCardCount == 2) {
           _toggleCardToFront();
+          _checkCardIsEqual();
           _frontCardCount = 0;
         }
       },
@@ -123,5 +126,24 @@ class _MyHomePage2State extends State<MyHomePage2> {
         cardKeyState.toggleCard();
       }
     }
+  }
+
+  void _checkCardIsEqual() {
+    if (_frontCardIndexes.length >= 2) {
+      String firstCardName = _randomImageNames[_frontCardIndexes[0]];
+      String secondCardName = _randomImageNames[_frontCardIndexes[1]];
+
+      if (firstCardName == secondCardName) {
+        _randomImageNames[_frontCardIndexes[0]] = '';
+        _randomImageNames[_frontCardIndexes[1]] = '';
+
+        setState(() {
+
+        });
+      }
+    }
+
+    _frontCardIndexes.clear();
+    _frontCardCount = 0;
   }
 }
