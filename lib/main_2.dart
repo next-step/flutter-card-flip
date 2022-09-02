@@ -46,13 +46,15 @@ class _MyHomePage2State extends State<MyHomePage2> {
   @override
   void initState() {
     super.initState();
-    configureCards();
+    reset();
   }
 
-  void configureCards() {
+  void reset() {
+    _randomImageNames.clear();
     _randomImageNames.addAll(_imageNames);
     _randomImageNames.addAll(_imageNames);
     _randomImageNames.shuffle();
+    _cardKeys.clear();
     _cardKeys.addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
   }
 
@@ -72,8 +74,7 @@ class _MyHomePage2State extends State<MyHomePage2> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
-            _randomImageNames.shuffle();
-            _toggleCardToFront();
+            reset();
           });
         },
         child: const Icon(Icons.refresh),
@@ -88,7 +89,15 @@ class _MyHomePage2State extends State<MyHomePage2> {
     );
   }
 
-  FlipCard _buildFlipCard(int index) {
+  Widget _buildFlipCard(int index) {
+    if (_randomImageNames[index].isEmpty) {
+      return Container(
+        width: 100,
+        height: 150,
+        color: Colors.transparent,
+      );
+    }
+
     return FlipCard(
       key: _cardKeys[index],
       onFlip: () {
