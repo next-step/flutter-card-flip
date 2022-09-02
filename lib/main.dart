@@ -60,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     });
 
-    _core.reset();
+    _core.add(FlipCardEvent.init);
   }
 
   @override
@@ -111,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.orange,
         onPressed: () {
-          _core.reset();
+          _core.add(FlipCardEvent.reset);
         },
         child: const Icon(
           Icons.refresh,
