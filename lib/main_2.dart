@@ -40,6 +40,7 @@ class _MyHomePage2State extends State<MyHomePage2> {
 
   final List<String> _randomImageNames = [];
   final List<GlobalKey<FlipCardState>> _cardKeys = [];
+  int _frontCardCount = 0;
 
   @override
   void initState() {
@@ -71,14 +72,7 @@ class _MyHomePage2State extends State<MyHomePage2> {
         onPressed: () {
           setState(() {
             _randomImageNames.shuffle();
-
-            for (var cardKey in _cardKeys) {
-              final cardKeyState = cardKey.currentState;
-              if (cardKeyState == null) return;
-              if (!cardKeyState.isFront) {
-                cardKeyState.toggleCard();
-              }
-            }
+            _toggleCardToFront();
           });
         },
         child: const Icon(Icons.refresh),
@@ -96,6 +90,15 @@ class _MyHomePage2State extends State<MyHomePage2> {
   FlipCard _buildFlipCard(int index) {
     return FlipCard(
       key: _cardKeys[index],
+      onFlip: () {
+        _frontCardCount++;
+      },
+      onFlipDone: (isFront) {
+        if (_frontCardCount == 2) {
+          _toggleCardToFront();
+          _frontCardCount = 0;
+        }
+      },
       front: Container(
         width: 100,
         height: 150,
@@ -110,5 +113,15 @@ class _MyHomePage2State extends State<MyHomePage2> {
         ),
       ),
     );
+  }
+
+  void _toggleCardToFront() {
+    for (var cardKey in _cardKeys) {
+      final cardKeyState = cardKey.currentState;
+      if (cardKeyState == null) return;
+      if (!cardKeyState.isFront) {
+        cardKeyState.toggleCard();
+      }
+    }
   }
 }
