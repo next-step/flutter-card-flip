@@ -1,5 +1,5 @@
 import 'package:flip_card/flip_card.dart';
-import 'package:flip_card_game/asset_name.dart';
+import 'package:flip_card_game/flipcard/flip_card_core.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,9 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -31,37 +29,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final _imageNames = [
-    AssetImageName.orange,
-    AssetImageName.banana,
-    AssetImageName.apple,
-    AssetImageName.strawberry,
-  ];
-
-  final List<String> _randomImageNames = [];
-  final List<GlobalKey<FlipCardState>> _cardKeys = [];
-  int _frontCardCount = 0;
-  final List<int> _frontCardIndexes = [];
+  final FlipCardCore _flipCardCore = FlipCardCore();
 
   @override
   void initState() {
     super.initState();
-
-    reset();
-  }
-
-  void reset() {
-    // add 2 times
-    _randomImageNames.clear();
-    _randomImageNames.addAll(_imageNames);
-    _randomImageNames.addAll(_imageNames);
-
-    // shuffle
-    _randomImageNames.shuffle();
-
-    // create global key
-    _cardKeys.clear();
-    _cardKeys.addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
   }
 
   @override
@@ -75,9 +47,9 @@ class _MyHomePageState extends State<MyHomePage> {
           spacing: 4,
           runSpacing: 4,
           children: List.generate(
-            _randomImageNames.length,
+            _flipCardCore.getCardCount(),
             (index) {
-              if (_randomImageNames[index].isEmpty) {
+              if (_flipCardCore.isMatchedCard(index)) {
                 return Container(
                   width: 100,
                   height: 150,
@@ -85,44 +57,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               }
               return FlipCard(
-                key: _cardKeys[index],
-                onFlip: () {
-                  _frontCardCount++;
-                  _frontCardIndexes.add(index);
-                },
-                onFlipDone: (bool) {
-                  if (_frontCardCount == 2) {
-                    _toggleCardToFront();
-
-                    _checkCardIsEqual();
-
-                    _frontCardCount = 0;
-
-                    if (_frontCardIndexes.length >= 2) {
-                      String firstCardName = _randomImageNames[_frontCardIndexes[0]];
-                      String secondCardName = _randomImageNames[_frontCardIndexes[1]];
-                      if (firstCardName == secondCardName) {
-                        _randomImageNames[_frontCardIndexes[0]] = '';
-                        _randomImageNames[_frontCardIndexes[1]] = '';
-
-                        setState(() {});
-                      }
-                    }
-
-                    _frontCardIndexes.clear();
-                    _frontCardCount = 0;
-                  }
-                },
+                key: _flipCardCore.getCardKey(index),
+                onFlip: () => _flipCardCore.flipFront(index),
+                onFlipDone: (isFont) => _flipCardCore.flipFrontDone(
+                  index,
+                  onMatchedTwoCards: () => setState(() {}),
+                ),
                 front: Container(
                   width: 100,
                   height: 150,
                   color: Colors.orange,
                 ),
-                back: Container(
+                back: SizedBox(
                   width: 100,
                   height: 150,
                   child: Image.asset(
-                    _randomImageNames[index],
+                    _flipCardCore.getCardImage(index),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -132,38 +82,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            reset();
-          });
-        },
+        onPressed: () => setState(() => _flipCardCore.reset()),
         child: const Icon(Icons.refresh),
       ),
     );
-  }
-
-  void _toggleCardToFront() {
-    for (var cardKey in _cardKeys) {
-      if (cardKey.currentState == null) return;
-
-      if (!cardKey.currentState!.isFront) {
-        cardKey.currentState!.toggleCard();
-      }
-    }
-  }
-
-  void _checkCardIsEqual() {
-    if (_frontCardIndexes.length >= 2) {
-      String firstCardName = _randomImageNames[_frontCardIndexes[0]];
-      String secondCardName = _randomImageNames[_frontCardIndexes[1]];
-      if (firstCardName == secondCardName) {
-        _randomImageNames[_frontCardIndexes[0]] = '';
-        _randomImageNames[_frontCardIndexes[1]] = '';
-
-        setState(() {});
-      }
-    }
-
-    _frontCardIndexes.clear();
   }
 }
