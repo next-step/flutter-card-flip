@@ -1,5 +1,5 @@
 import 'package:flip_card/flip_card.dart';
-import 'package:flip_card_game/asset_name.dart';
+import 'package:flip_card_game/asset/asset_name.dart';
 import 'package:flutter/material.dart';
 
 void main() {
