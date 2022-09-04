@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flip_card/flip_card.dart';
-import 'package:flip_card_game/asset/asset_name.dart';
+import 'package:flip_card_game/model/flip_cards.dart';
 import 'package:flutter/material.dart';
 
 class FlipCardCore {
@@ -9,47 +9,30 @@ class FlipCardCore {
     reset();
   }
 
-  final _imageNames = [
-    AssetImageName.orange,
-    AssetImageName.banana,
-    AssetImageName.apple,
-    AssetImageName.strawberry,
-  ];
+  final FlipCards _flipCards = FlipCards();
 
-  final List<String> _randomImageNames = [];
-  final List<GlobalKey<FlipCardState>> _cardKeys = [];
   int _frontCardCount = 0;
   final List<int> _frontCardIndexes = [];
   bool _isNoMatchedToggling = false;
 
   void reset() {
-    // add 2 times
-    _randomImageNames.clear();
-    _randomImageNames.addAll(_imageNames);
-    _randomImageNames.addAll(_imageNames);
-
-    // shuffle
-    _randomImageNames.shuffle();
-
-    // create global key
-    _cardKeys.clear();
-    _cardKeys.addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
+    _flipCards.reset();
   }
 
   int getCardCount() {
-    return _randomImageNames.length;
+    return _flipCards.getCardCount();
   }
 
   String getCardImage(int index) {
-    return _randomImageNames[index];
+    return _flipCards.getCardImage(index);
   }
 
   GlobalKey<FlipCardState> getCardKey(int index) {
-    return _cardKeys[index];
+    return _flipCards.getCardKey(index);
   }
 
   bool isMatchedCard(int index) {
-    return _randomImageNames[index].isEmpty;
+    return _flipCards.isMatchedCard(index);
   }
 
   void flipFront(int index) {
@@ -70,12 +53,12 @@ class FlipCardCore {
 
   void _checkCardIsEqual(Function() onMatchedTwoCards) {
     if (_frontCardIndexes.length >= 2) {
-      String firstCardName = _randomImageNames[_frontCardIndexes[0]];
-      String secondCardName = _randomImageNames[_frontCardIndexes[1]];
+      String firstCardName = _flipCards.getCardImage(_frontCardIndexes[0]);
+      String secondCardName = _flipCards.getCardImage(_frontCardIndexes[1]);
 
       if (firstCardName == secondCardName) {
-        _randomImageNames[_frontCardIndexes[0]] = '';
-        _randomImageNames[_frontCardIndexes[1]] = '';
+        _flipCards.setCardImageEmpty(_frontCardIndexes[0]);
+        _flipCards.setCardImageEmpty(_frontCardIndexes[1]);
 
         onMatchedTwoCards();
       }
@@ -88,13 +71,7 @@ class FlipCardCore {
   void _toggleCardToFront() {
     _isNoMatchedToggling = true;
 
-    for (var cardKey in _cardKeys) {
-      if (cardKey.currentState == null) continue;
-
-      if (!cardKey.currentState!.isFront) {
-        cardKey.currentState!.toggleCard();
-      }
-    }
+    _flipCards.toggleCard();
 
     Future.delayed(const Duration(microseconds: 150), () {
       _isNoMatchedToggling = false;
