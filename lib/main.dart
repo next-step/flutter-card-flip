@@ -1,5 +1,6 @@
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card_game/flipcard/flip_card_core.dart';
+import 'package:flip_card_game/model/flip_cards.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -42,44 +43,51 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: List.generate(
-            _flipCardCore.getCardCount(),
-            (index) {
-              if (_flipCardCore.isMatchedCard(index)) {
-                return Container(
-                  width: 100,
-                  height: 150,
-                  color: Colors.transparent,
-                );
-              }
-              return FlipCard(
-                key: _flipCardCore.getCardKey(index),
-                onFlip: () => _flipCardCore.flipFront(index),
-                onFlipDone: (isFont) => _flipCardCore.flipFrontDone(
-                  index,
-                  onMatchedTwoCards: () => setState(() {}),
-                ),
-                front: Container(
-                  width: 100,
-                  height: 150,
-                  color: Colors.orange,
-                ),
-                back: SizedBox(
-                  width: 100,
-                  height: 150,
-                  child: Image.asset(
-                    _flipCardCore.getCardImage(index),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+      body: StreamBuilder<FlipCards>(
+        stream: _flipCardCore.streamController.stream,
+        builder: (context, snapshot) {
+          final flipCards = snapshot.data;
+          if (flipCards == null) {
+            return const SizedBox();
+          }
+
+          return Center(
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: List.generate(
+                flipCards.getCardCount(),
+                (index) {
+                  if (flipCards.isMatchedCard(index)) {
+                    return Container(
+                      width: 100,
+                      height: 150,
+                      color: Colors.transparent,
+                    );
+                  }
+                  return FlipCard(
+                    key: flipCards.getCardKey(index),
+                    onFlip: () => _flipCardCore.flipFront(index),
+                    onFlipDone: (isFont) => _flipCardCore.flipFrontDone(index),
+                    front: Container(
+                      width: 100,
+                      height: 150,
+                      color: Colors.orange,
+                    ),
+                    back: SizedBox(
+                      width: 100,
+                      height: 150,
+                      child: Image.asset(
+                        flipCards.getCardImage(index),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        }
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => setState(() => _flipCardCore.reset()),

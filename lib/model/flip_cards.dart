@@ -17,15 +17,12 @@ class FlipCards {
   final List<GlobalKey<FlipCardState>> _cardKeys = [];
 
   void reset() {
-    // add 2 times
     _randomImageNames.clear();
     _randomImageNames.addAll(_imageNames);
     _randomImageNames.addAll(_imageNames);
 
-    // shuffle
     _randomImageNames.shuffle();
 
-    // create global key
     _cardKeys.clear();
     _cardKeys.addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
   }

@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:flip_card/flip_card.dart';
 import 'package:flip_card_game/model/flip_cards.dart';
-import 'package:flutter/material.dart';
 
 class FlipCardCore {
   FlipCardCore() {
@@ -15,24 +13,11 @@ class FlipCardCore {
   final List<int> _frontCardIndexes = [];
   bool _isNoMatchedToggling = false;
 
+  final StreamController<FlipCards> streamController = StreamController();
+
   void reset() {
     _flipCards.reset();
-  }
-
-  int getCardCount() {
-    return _flipCards.getCardCount();
-  }
-
-  String getCardImage(int index) {
-    return _flipCards.getCardImage(index);
-  }
-
-  GlobalKey<FlipCardState> getCardKey(int index) {
-    return _flipCards.getCardKey(index);
-  }
-
-  bool isMatchedCard(int index) {
-    return _flipCards.isMatchedCard(index);
+    streamController.add(_flipCards);
   }
 
   void flipFront(int index) {
@@ -42,16 +27,16 @@ class FlipCardCore {
     _frontCardIndexes.add(index);
   }
 
-  void flipFrontDone(int index, { required Function() onMatchedTwoCards }) {
+  void flipFrontDone(int index) {
     if (_isNoMatchedToggling) return;
 
     if (_frontCardCount == 2) {
-      _checkCardIsEqual(onMatchedTwoCards);
+      _checkCardIsEqual();
       _toggleCardToFront();
     }
   }
 
-  void _checkCardIsEqual(Function() onMatchedTwoCards) {
+  void _checkCardIsEqual() {
     if (_frontCardIndexes.length >= 2) {
       String firstCardName = _flipCards.getCardImage(_frontCardIndexes[0]);
       String secondCardName = _flipCards.getCardImage(_frontCardIndexes[1]);
@@ -60,7 +45,7 @@ class FlipCardCore {
         _flipCards.setCardImageEmpty(_frontCardIndexes[0]);
         _flipCards.setCardImageEmpty(_frontCardIndexes[1]);
 
-        onMatchedTwoCards();
+        streamController.add(_flipCards);
       }
     }
 
