@@ -1,24 +1,25 @@
 import 'dart:async';
 
-import 'package:flip_card_game/model/flip_cards.dart';
+import 'package:flip_card_game/flipcard/card_state.dart';
+import 'package:flip_card_game/model/cards.dart';
 
-class FlipCardCore {
-  FlipCardCore() {
+class CardCore {
+  CardCore() {
     reset();
   }
 
-  final FlipCards _flipCards = FlipCards();
+  final Cards _cards = Cards();
 
   int _frontCardCount = 0;
   final List<int> _frontCardIndexes = [];
   bool _isNoMatchedToggling = false;
 
-  final StreamController<FlipCards> _streamController = StreamController();
-  Stream<FlipCards> get stream => _streamController.stream;
+  final StreamController<CardState> _streamController = StreamController();
+  Stream<CardState>? get stream => _streamController.stream;
 
   void reset() {
-    _flipCards.reset();
-    _streamController.add(_flipCards);
+    _cards.reset();
+    _streamController.add(InitialState(_cards));
   }
 
   void flipFront(int index) {
@@ -39,14 +40,14 @@ class FlipCardCore {
 
   void _checkCardIsEqual() {
     if (_frontCardIndexes.length >= 2) {
-      String firstCardName = _flipCards.getCardImage(_frontCardIndexes[0]);
-      String secondCardName = _flipCards.getCardImage(_frontCardIndexes[1]);
+      String firstCardName = _cards.getCardImage(_frontCardIndexes[0]);
+      String secondCardName = _cards.getCardImage(_frontCardIndexes[1]);
 
       if (firstCardName == secondCardName) {
-        _flipCards.setCardImageEmpty(_frontCardIndexes[0]);
-        _flipCards.setCardImageEmpty(_frontCardIndexes[1]);
+        _cards.setCardImageEmpty(_frontCardIndexes[0]);
+        _cards.setCardImageEmpty(_frontCardIndexes[1]);
 
-        _streamController.add(_flipCards);
+        _streamController.add(CheckCardState(_cards));
       }
     }
 
@@ -57,7 +58,7 @@ class FlipCardCore {
   void _toggleCardToFront() {
     _isNoMatchedToggling = true;
 
-    _flipCards.toggleCard();
+    _cards.toggleCard();
 
     Future.delayed(const Duration(microseconds: 150), () {
       _isNoMatchedToggling = false;

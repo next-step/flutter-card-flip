@@ -2,9 +2,9 @@ import 'package:flip_card/flip_card.dart';
 import 'package:flip_card_game/asset/asset_name.dart';
 import 'package:flutter/material.dart';
 
-class FlipCards {
+class Cards {
 
-  FlipCards();
+  Cards();
 
   final _imageNames = [
     AssetImageName.orange,

@@ -1,6 +1,7 @@
 import 'package:flip_card/flip_card.dart';
-import 'package:flip_card_game/flipcard/flip_card_core.dart';
-import 'package:flip_card_game/model/flip_cards.dart';
+import 'package:flip_card_game/flipcard/card_core.dart';
+import 'package:flip_card_game/flipcard/card_state.dart';
+import 'package:flip_card_game/model/cards.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -30,7 +31,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final FlipCardCore _flipCardCore = FlipCardCore();
+  final CardCore _cardCore = CardCore();
 
   @override
   void initState() {
@@ -39,16 +40,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    late Cards cards;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: StreamBuilder<FlipCards>(
-        stream: _flipCardCore.stream,
+      body: StreamBuilder<CardState>(
+        stream: _cardCore.stream,
         builder: (context, snapshot) {
-          final flipCards = snapshot.data;
-          if (flipCards == null) {
+          final state = snapshot.data;
+          if (state == null) {
             return const SizedBox();
+          }
+
+          switch (state.runtimeType) {
+            case InitialState:
+            case CheckCardState:
+              cards = state.cards;
+              break;
+
+            default:
+              return const SizedBox();
           }
 
           return Center(
@@ -56,9 +69,9 @@ class _MyHomePageState extends State<MyHomePage> {
               spacing: 4,
               runSpacing: 4,
               children: List.generate(
-                flipCards.cardCount,
+                cards.cardCount,
                 (index) {
-                  if (flipCards.isMatchedCard(index)) {
+                  if (cards.isMatchedCard(index)) {
                     return Container(
                       width: 100,
                       height: 150,
@@ -66,9 +79,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   }
                   return FlipCard(
-                    key: flipCards.getCardKey(index),
-                    onFlip: () => _flipCardCore.flipFront(index),
-                    onFlipDone: (isFont) => _flipCardCore.flipFrontDone(index),
+                    key: cards.getCardKey(index),
+                    onFlip: () => _cardCore.flipFront(index),
+                    onFlipDone: (isFont) => _cardCore.flipFrontDone(index),
                     front: Container(
                       width: 100,
                       height: 150,
@@ -78,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       width: 100,
                       height: 150,
                       child: Image.asset(
-                        flipCards.getCardImage(index),
+                        cards.getCardImage(index),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -90,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => setState(() => _flipCardCore.reset()),
+        onPressed: () => setState(() => _cardCore.reset()),
         child: const Icon(Icons.refresh),
       ),
     );
