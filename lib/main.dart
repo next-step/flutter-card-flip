@@ -44,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: StreamBuilder<FlipCards>(
-        stream: _flipCardCore.streamController.stream,
+        stream: _flipCardCore.stream,
         builder: (context, snapshot) {
           final flipCards = snapshot.data;
           if (flipCards == null) {

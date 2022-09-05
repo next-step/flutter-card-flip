@@ -13,11 +13,12 @@ class FlipCardCore {
   final List<int> _frontCardIndexes = [];
   bool _isNoMatchedToggling = false;
 
-  final StreamController<FlipCards> streamController = StreamController();
+  final StreamController<FlipCards> _streamController = StreamController();
+  Stream<FlipCards> get stream => _streamController.stream;
 
   void reset() {
     _flipCards.reset();
-    streamController.add(_flipCards);
+    _streamController.add(_flipCards);
   }
 
   void flipFront(int index) {
@@ -45,7 +46,7 @@ class FlipCardCore {
         _flipCards.setCardImageEmpty(_frontCardIndexes[0]);
         _flipCards.setCardImageEmpty(_frontCardIndexes[1]);
 
-        streamController.add(_flipCards);
+        _streamController.add(_flipCards);
       }
     }
 
