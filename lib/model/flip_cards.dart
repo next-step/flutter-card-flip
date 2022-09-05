@@ -16,6 +16,8 @@ class FlipCards {
   final List<String> _randomImageNames = [];
   final List<GlobalKey<FlipCardState>> _cardKeys = [];
 
+  int get cardCount => _randomImageNames.length;
+
   void reset() {
     _randomImageNames.clear();
     _randomImageNames.addAll(_imageNames);
@@ -25,10 +27,6 @@ class FlipCards {
 
     _cardKeys.clear();
     _cardKeys.addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
-  }
-
-  int getCardCount() {
-    return _randomImageNames.length;
   }
 
   String getCardImage(int index) {

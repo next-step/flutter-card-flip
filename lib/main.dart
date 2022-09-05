@@ -56,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
               spacing: 4,
               runSpacing: 4,
               children: List.generate(
-                flipCards.getCardCount(),
+                flipCards.cardCount,
                 (index) {
                   if (flipCards.isMatchedCard(index)) {
                     return Container(
