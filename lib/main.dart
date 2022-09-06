@@ -1,9 +1,9 @@
 import 'package:flip_card/flip_card.dart';
-import 'package:flip_card_game/card_state.dart';
-import 'package:flip_card_game/flip_card_cubit.dart';
-import 'package:flip_card_game/util/card.dart';
+import 'package:flip_card_game/flip_card_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'card_state.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => FlipCardCubit(InitialCardState(getDefaultCardList())),
+      create: (_) => FlipCardBloc(),
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: BlocBuilder<FlipCardCubit, CardState>(
+      body: BlocBuilder<FlipCardBloc, CardState>(
         builder: (BuildContext context, state) {
           var randomImageNames = state.randomImageNames;
 
@@ -61,12 +61,14 @@ class _MyHomePageState extends State<MyHomePage> {
               onFlipDone: (index) => _onFlipDone(
                   randomImageNames: randomImageNames,
                   index: index,
-                  update: context.read<FlipCardCubit>().update));
+                  update: (list) => context
+                      .read<FlipCardBloc>()
+                      .add(UpdateCardList(randomImageNames: list))));
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.read<FlipCardCubit>().reset();
+          context.read<FlipCardBloc>().add(ResetCardList());
         },
         child: const Icon(Icons.refresh),
       ),
