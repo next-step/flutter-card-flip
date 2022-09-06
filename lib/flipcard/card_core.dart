@@ -1,12 +1,12 @@
 import 'dart:async';
 
+import 'package:bloc/bloc.dart';
 import 'package:flip_card_game/flipcard/card_state.dart';
 import 'package:flip_card_game/model/cards.dart';
+import 'package:flutter/material.dart';
 
-class CardCore {
-  CardCore() {
-    reset();
-  }
+class CardCore extends Cubit<CardState> {
+  CardCore() : super(InitialState());
 
   final Cards _cards = Cards();
 
@@ -14,12 +14,10 @@ class CardCore {
   final List<int> _frontCardIndexes = [];
   bool _isNoMatchedToggling = false;
 
-  final StreamController<CardState> _streamController = StreamController();
-  Stream<CardState>? get stream => _streamController.stream;
-
   void reset() {
+    debugPrint('reset');
     _cards.reset();
-    _streamController.add(InitialState(_cards));
+    emit(ResetCardState(_cards));
   }
 
   void flipFront(int index) {
@@ -47,7 +45,7 @@ class CardCore {
         _cards.setCardImageEmpty(_frontCardIndexes[0]);
         _cards.setCardImageEmpty(_frontCardIndexes[1]);
 
-        _streamController.add(CheckCardState(_cards));
+        emit(CheckCardState(_cards));
       }
     }
 

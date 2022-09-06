@@ -40,8 +40,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    late Cards cards;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -51,55 +49,19 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (context, snapshot) {
           final state = snapshot.data;
           if (state == null) {
+            _cardCore.reset();
             return const SizedBox();
           }
 
-          switch (state.runtimeType) {
-            case InitialState:
-            case CheckCardState:
-              cards = state.cards;
-              break;
-
-            default:
-              return const SizedBox();
+          if (state is ResetCardState) {
+            return _buildCards(state.cards);
           }
 
-          return Center(
-            child: Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: List.generate(
-                cards.cardCount,
-                (index) {
-                  if (cards.isMatchedCard(index)) {
-                    return Container(
-                      width: 100,
-                      height: 150,
-                      color: Colors.transparent,
-                    );
-                  }
-                  return FlipCard(
-                    key: cards.getCardKey(index),
-                    onFlip: () => _cardCore.flipFront(index),
-                    onFlipDone: (isFont) => _cardCore.flipFrontDone(index),
-                    front: Container(
-                      width: 100,
-                      height: 150,
-                      color: Colors.orange,
-                    ),
-                    back: SizedBox(
-                      width: 100,
-                      height: 150,
-                      child: Image.asset(
-                        cards.getCardImage(index),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          );
+          if (state is ResetCardState) {
+            return _buildCards(state.cards);
+          }
+
+          return const SizedBox();
         }
       ),
       floatingActionButton: FloatingActionButton(
@@ -107,5 +69,44 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.refresh),
       ),
     );
+  }
+
+  Center _buildCards(Cards cards) {
+    return Center(
+          child: Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: List.generate(
+              cards.cardCount,
+              (index) {
+                if (cards.isMatchedCard(index)) {
+                  return Container(
+                    width: 100,
+                    height: 150,
+                    color: Colors.transparent,
+                  );
+                }
+                return FlipCard(
+                  key: cards.getCardKey(index),
+                  onFlip: () => _cardCore.flipFront(index),
+                  onFlipDone: (isFont) => _cardCore.flipFrontDone(index),
+                  front: Container(
+                    width: 100,
+                    height: 150,
+                    color: Colors.orange,
+                  ),
+                  back: SizedBox(
+                    width: 100,
+                    height: 150,
+                    child: Image.asset(
+                      cards.getCardImage(index),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
   }
 }
