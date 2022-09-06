@@ -39,18 +39,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-
-    flipCardCore.stream.listen((list) {
-      setState(() {
-        _randomImageNames = list;
-
-        if (_cardKeys.isEmpty) {
-          _cardKeys
-              .addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
-        }
-        _toggleCardToFront();
-      });
-    });
   }
 
   @override
@@ -65,51 +53,66 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: List.generate(
-            _randomImageNames.length,
-            (index) {
-              if (_randomImageNames[index].isEmpty) {
-                return Container(
-                  width: 100,
-                  height: 150,
-                  color: Colors.transparent,
-                );
-              }
-              return FlipCard(
-                key: _cardKeys[index],
-                onFlipDone: (isFront) => {
-                  if (!isFront) {flipCardCore.onFlipDone(index)}
-                },
-                front: Container(
-                  width: 100,
-                  height: 150,
-                  color: Colors.orange,
-                ),
-                back: Container(
-                  width: 100,
-                  height: 150,
-                  child: Image.asset(
-                    _randomImageNames[index],
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+      body: StreamBuilder<List<String>>(
+        stream: flipCardCore.stream,
+        builder: (context, snapshot) {
+          _randomImageNames = snapshot.data ?? [];
+
+          if (_cardKeys.isEmpty) {
+            _cardKeys.addAll(
+                _randomImageNames.map((_) => GlobalKey<FlipCardState>()));
+          }
+          _toggleCardToFront();
+
+          return _buildCardListWidget();
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          setState(() {
-            _cardKeys.clear();
-            flipCardCore.reset();
-          });
+          _cardKeys.clear();
+          flipCardCore.reset();
         },
         child: const Icon(Icons.refresh),
+      ),
+    );
+  }
+
+  Widget _buildCardListWidget() {
+    return Center(
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: List.generate(
+          _randomImageNames.length,
+          (index) {
+            if (_randomImageNames[index].isEmpty) {
+              return Container(
+                width: 100,
+                height: 150,
+                color: Colors.transparent,
+              );
+            }
+            return FlipCard(
+              key: _cardKeys[index],
+              onFlipDone: (isFront) => {
+                if (!isFront) {flipCardCore.onFlipDone(index)}
+              },
+              front: Container(
+                width: 100,
+                height: 150,
+                color: Colors.orange,
+              ),
+              back: Container(
+                width: 100,
+                height: 150,
+                child: Image.asset(
+                  _randomImageNames[index],
+                  fit: BoxFit.cover,
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
