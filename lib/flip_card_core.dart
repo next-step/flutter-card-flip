@@ -1,9 +1,13 @@
-import 'package:flip_card/flip_card.dart';
-import 'package:flutter/material.dart';
-
+import 'dart:async';
 import 'asset_name.dart';
 
 class FlipCardCore {
+  FlipCardCore() {
+    reset();
+  }
+
+  final StreamController<List<String>> _streamController = StreamController();
+
   final _imageNames = [
     AssetImageName.orange,
     AssetImageName.banana,
@@ -12,13 +16,9 @@ class FlipCardCore {
   ];
 
   final List<String> _randomImageNames = [];
-  final List<GlobalKey<FlipCardState>> _cardKeys = [];
-
-  int _frontCardCount = 0;
   final List<int> _frontCardIndexes = [];
 
-  List<String> get randomImageNames => _randomImageNames;
-  List<GlobalKey<FlipCardState>> get cardKeys => _cardKeys;
+  Stream<List<String>> get stream => _streamController.stream;
 
   void reset() {
     // add 2 times
@@ -29,64 +29,27 @@ class FlipCardCore {
     // shuffle
     _randomImageNames.shuffle();
 
-    // create global key
-    _cardKeys.clear();
-    _cardKeys.addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
+    _streamController.add(_randomImageNames);
   }
 
-  void _checkCardIsEqual(setState) {
-    print('_checkCardIsEqual');
-    print(_frontCardIndexes);
-    if (_frontCardIndexes.length >= 2) {
+  void dispose() {
+    _streamController.close();
+  }
+
+  void onFlipDone(index) {
+    _frontCardIndexes.add(index);
+
+    if (_frontCardIndexes.length == 2) {
       String firstCardName = _randomImageNames[_frontCardIndexes[0]];
       String secondCardName = _randomImageNames[_frontCardIndexes[1]];
+
       if (firstCardName == secondCardName) {
         _randomImageNames[_frontCardIndexes[0]] = '';
         _randomImageNames[_frontCardIndexes[1]] = '';
-
-        setState(() {});
-      }
-    }
-
-    _frontCardIndexes.clear();
-  }
-
-  void _toggleCardToFront() {
-    for (var cardKey in _cardKeys) {
-      if (cardKey.currentState == null) return;
-
-      if (!cardKey.currentState!.isFront) {
-        cardKey.currentState!.toggleCard();
-      }
-    }
-  }
-
-  void onFlip(index) {
-    _frontCardCount++;
-    _frontCardIndexes.add(index);
-  }
-
-  void onFlipDone(setState) {
-    if (_frontCardCount == 2) {
-      _toggleCardToFront();
-
-      _checkCardIsEqual(setState);
-
-      _frontCardCount = 0;
-
-      if (_frontCardIndexes.length >= 2) {
-        String firstCardName = _randomImageNames[_frontCardIndexes[0]];
-        String secondCardName = _randomImageNames[_frontCardIndexes[1]];
-        if (firstCardName == secondCardName) {
-          _randomImageNames[_frontCardIndexes[0]] = '';
-          _randomImageNames[_frontCardIndexes[1]] = '';
-
-          setState(() {});
-        }
       }
 
+      _streamController.add(_randomImageNames);
       _frontCardIndexes.clear();
-      _frontCardCount = 0;
     }
   }
 }

@@ -34,16 +34,29 @@ class _MyHomePageState extends State<MyHomePage> {
   final flipCardCore = FlipCardCore();
 
   List<String> _randomImageNames = [];
-  List<GlobalKey<FlipCardState>> _cardKeys = [];
+  final List<GlobalKey<FlipCardState>> _cardKeys = [];
 
   @override
   void initState() {
     super.initState();
 
-    flipCardCore.reset();
+    flipCardCore.stream.listen((list) {
+      setState(() {
+        _randomImageNames = list;
 
-    _randomImageNames = flipCardCore.randomImageNames;
-    _cardKeys = flipCardCore.cardKeys;
+        if (_cardKeys.isEmpty) {
+          _cardKeys
+              .addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
+        }
+        _toggleCardToFront();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    flipCardCore.dispose();
+    super.dispose();
   }
 
   @override
@@ -68,8 +81,9 @@ class _MyHomePageState extends State<MyHomePage> {
               }
               return FlipCard(
                 key: _cardKeys[index],
-                onFlip: () => flipCardCore.onFlip(index),
-                onFlipDone: (bool) => flipCardCore.onFlipDone(setState),
+                onFlipDone: (isFront) => {
+                  if (!isFront) {flipCardCore.onFlipDone(index)}
+                },
                 front: Container(
                   width: 100,
                   height: 150,
@@ -91,11 +105,22 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
+            _cardKeys.clear();
             flipCardCore.reset();
           });
         },
         child: const Icon(Icons.refresh),
       ),
     );
+  }
+
+  void _toggleCardToFront() {
+    for (var cardKey in _cardKeys) {
+      if (cardKey.currentState == null) continue;
+
+      if (!cardKey.currentState!.isFront) {
+        cardKey.currentState!.toggleCard();
+      }
+    }
   }
 }
