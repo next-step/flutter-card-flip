@@ -1,6 +1,7 @@
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card_game/card_state.dart';
 import 'package:flip_card_game/flip_card_cubit.dart';
+import 'package:flip_card_game/util/card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
