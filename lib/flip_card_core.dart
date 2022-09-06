@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'asset_name.dart';
+import 'model/flip_card.dart';
 
 class FlipCardCore {
   FlipCardCore() {
     reset();
   }
 
-  final StreamController<List<String>> _streamController = StreamController();
+  final StreamController<FlipCardModel> _streamController = StreamController();
 
   final _imageNames = [
     AssetImageName.orange,
@@ -18,7 +19,7 @@ class FlipCardCore {
   final List<String> _randomImageNames = [];
   final List<int> _frontCardIndexes = [];
 
-  Stream<List<String>> get stream => _streamController.stream;
+  Stream<FlipCardModel> get stream => _streamController.stream;
 
   void reset() {
     // add 2 times
@@ -29,7 +30,7 @@ class FlipCardCore {
     // shuffle
     _randomImageNames.shuffle();
 
-    _streamController.add(_randomImageNames);
+    _streamController.add(FlipCardModel(randomImageNames: _randomImageNames));
   }
 
   void dispose() {
@@ -48,7 +49,7 @@ class FlipCardCore {
         _randomImageNames[_frontCardIndexes[1]] = '';
       }
 
-      _streamController.add(_randomImageNames);
+      _streamController.add(FlipCardModel(randomImageNames: _randomImageNames));
       _frontCardIndexes.clear();
     }
   }

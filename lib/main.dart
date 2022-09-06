@@ -2,6 +2,8 @@ import 'package:flip_card/flip_card.dart';
 import 'package:flip_card_game/flip_card_core.dart';
 import 'package:flutter/material.dart';
 
+import 'model/flip_card.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -53,10 +55,10 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: StreamBuilder<List<String>>(
+      body: StreamBuilder<FlipCardModel>(
         stream: flipCardCore.stream,
         builder: (context, snapshot) {
-          _randomImageNames = snapshot.data ?? [];
+          _randomImageNames = snapshot.data?.randomImageNames ?? [];
 
           if (_cardKeys.isEmpty) {
             _cardKeys.addAll(
