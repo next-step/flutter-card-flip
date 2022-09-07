@@ -1,5 +1,7 @@
 abstract class CardEvent {}
 
+class InitialEvent extends CardEvent {}
+
 class ResetEvent extends CardEvent {}
 
 class FlippingEvent extends CardEvent {

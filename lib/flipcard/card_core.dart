@@ -7,6 +7,7 @@ import 'package:flip_card_game/model/cards.dart';
 
 class CardCore extends Bloc<CardEvent, CardState> {
   CardCore() : super(InitialState()) {
+    on<InitialEvent>(_onInitialEvent);
     on<ResetEvent>(_onResetEvent);
     on<FlippingEvent>(_onFlippingEvent);
     on<FlipDoneEvent>(_onFlipDoneEvent);
@@ -18,7 +19,15 @@ class CardCore extends Bloc<CardEvent, CardState> {
   final List<int> _frontCardIndexes = [];
   bool _isNoMatchedToggling = false;
 
+  void _onInitialEvent(InitialEvent event, Emitter emit) {
+    _resetCard(emit);
+  }
+
   void _onResetEvent(ResetEvent event, Emitter emit) {
+    _resetCard(emit);
+  }
+
+  void _resetCard(Emitter emit) {
     _cards.reset();
     emit(ResetCardState(_cards));
   }

@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
           builder: (context, snapshot) {
             final state = snapshot.data;
             if (state == null) {
-              _cardCore.add(ResetEvent());
+              _cardCore.add(InitialEvent());
               return const SizedBox();
             }
 
