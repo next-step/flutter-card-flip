@@ -1,11 +1,16 @@
 import 'dart:async';
 
+import 'package:bloc/bloc.dart';
+import 'package:flip_card_game/flipcard/card_event.dart';
 import 'package:flip_card_game/flipcard/card_state.dart';
 import 'package:flip_card_game/model/cards.dart';
 
-class CardCore {
-  CardCore() {
-    reset();
+class CardCore extends Bloc<CardEvent, CardState> {
+  CardCore() : super(InitialState()) {
+    on<InitialEvent>(_onInitialEvent);
+    on<ResetEvent>(_onResetEvent);
+    on<FlippingEvent>(_onFlippingEvent);
+    on<FlipDoneEvent>(_onFlipDoneEvent);
   }
 
   final Cards _cards = Cards();
@@ -14,31 +19,36 @@ class CardCore {
   final List<int> _frontCardIndexes = [];
   bool _isNoMatchedToggling = false;
 
-  final StreamController<CardState> _streamController = StreamController();
-  Stream<CardState>? get stream => _streamController.stream;
-
-  void reset() {
-    _cards.reset();
-    _streamController.add(InitialState(_cards));
+  void _onInitialEvent(InitialEvent event, Emitter emit) {
+    _resetCard(emit);
   }
 
-  void flipFront(int index) {
+  void _onResetEvent(ResetEvent event, Emitter emit) {
+    _resetCard(emit);
+  }
+
+  void _resetCard(Emitter emit) {
+    _cards.reset();
+    emit(ResetCardState(_cards));
+  }
+
+  void _onFlippingEvent(FlippingEvent event, Emitter emit) {
     if (_isNoMatchedToggling) return;
 
     _frontCardCount++;
-    _frontCardIndexes.add(index);
+    _frontCardIndexes.add(event.index);
   }
 
-  void flipFrontDone(int index) {
+  void _onFlipDoneEvent(FlipDoneEvent event, Emitter emit) {
     if (_isNoMatchedToggling) return;
 
     if (_frontCardCount == 2) {
-      _checkCardIsEqual();
+      _checkCardIsEqual(emit);
       _toggleCardToFront();
     }
   }
 
-  void _checkCardIsEqual() {
+  void _checkCardIsEqual(Emitter emit) {
     if (_frontCardIndexes.length >= 2) {
       String firstCardName = _cards.getCardImage(_frontCardIndexes[0]);
       String secondCardName = _cards.getCardImage(_frontCardIndexes[1]);
@@ -47,7 +57,7 @@ class CardCore {
         _cards.setCardImageEmpty(_frontCardIndexes[0]);
         _cards.setCardImageEmpty(_frontCardIndexes[1]);
 
-        _streamController.add(CheckCardState(_cards));
+        emit(CheckCardState(_cards));
       }
     }
 
