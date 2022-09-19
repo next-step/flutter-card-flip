@@ -1,8 +1,7 @@
 import 'package:flip_card/flip_card.dart';
+import 'package:flip_card_game/card_state.dart';
 import 'package:flip_card_game/flip_card_core.dart';
 import 'package:flutter/material.dart';
-
-import 'model/flip_card.dart';
 
 void main() {
   runApp(const MyApp());
@@ -55,15 +54,18 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: StreamBuilder<FlipCardModel>(
+      body: StreamBuilder<CardState>(
         stream: flipCardCore.stream,
         builder: (context, snapshot) {
-          _randomImageNames = snapshot.data?.randomImageNames ?? [];
+          final runtimeType = snapshot.data.runtimeType;
 
-          if (_cardKeys.isEmpty) {
+          if (runtimeType == InitialCardState) {
+            _cardKeys.clear();
             _cardKeys.addAll(
                 _randomImageNames.map((_) => GlobalKey<FlipCardState>()));
           }
+
+          _randomImageNames = snapshot.data?.randomImageNames ?? [];
           _toggleCardToFront();
 
           return _buildCardListWidget();
@@ -71,7 +73,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _cardKeys.clear();
           flipCardCore.reset();
         },
         child: const Icon(Icons.refresh),
@@ -87,13 +88,14 @@ class _MyHomePageState extends State<MyHomePage> {
         children: List.generate(
           _randomImageNames.length,
           (index) {
-            if (_randomImageNames[index].isEmpty) {
+            if (_randomImageNames[index].isEmpty || _cardKeys.isEmpty) {
               return Container(
                 width: 100,
                 height: 150,
                 color: Colors.transparent,
               );
             }
+
             return FlipCard(
               key: _cardKeys[index],
               onFlipDone: (isFront) => {
