@@ -17,7 +17,7 @@ class FlipCardBloc extends Bloc<FlipCardEvent, CardState> {
     on<ResetCardList>((event, emit) {
       List<String> list = getDefaultCardList();
 
-      emit(InitialCardState(list));
+      emit(ResetCardState(list));
     });
     on<UpdateCardList>((event, emit) {
       emit(UpdateCardState(event.randomImageNames));

@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (BuildContext context, state) {
           var randomImageNames = state.randomImageNames;
 
-          if (_cardKeys.isEmpty) {
+          if (state is InitialCardState || state is ResetCardState) {
             _cardKeys.clear();
             _cardKeys.addAll(
                 randomImageNames.map((_) => GlobalKey<FlipCardState>()));
