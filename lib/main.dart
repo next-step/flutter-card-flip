@@ -1,7 +1,9 @@
 import 'package:flip_card/flip_card.dart';
-import 'package:flip_card_game/card_state.dart';
-import 'package:flip_card_game/flip_card_core.dart';
+import 'package:flip_card_game/flip_card_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'card_state.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,12 +14,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return BlocProvider(
+      create: (_) => FlipCardBloc(),
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const MyHomePage(title: 'Flutter Demo Home Page'),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -32,21 +37,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final flipCardCore = FlipCardCore();
-
-  List<String> _randomImageNames = [];
   final List<GlobalKey<FlipCardState>> _cardKeys = [];
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    flipCardCore.dispose();
-    super.dispose();
-  }
+  final List<int> _frontCardIndexes = [];
 
   @override
   Widget build(BuildContext context) {
@@ -54,52 +46,54 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: StreamBuilder<CardState>(
-        stream: flipCardCore.stream,
-        builder: (context, snapshot) {
-          final runtimeType = snapshot.data.runtimeType;
+      body: BlocBuilder<FlipCardBloc, CardState>(
+        builder: (BuildContext context, state) {
+          var randomImageNames = state.randomImageNames;
 
-          if (runtimeType == InitialCardState) {
+          if (state is InitialCardState || state is ResetCardState) {
             _cardKeys.clear();
             _cardKeys.addAll(
-                _randomImageNames.map((_) => GlobalKey<FlipCardState>()));
+                randomImageNames.map((_) => GlobalKey<FlipCardState>()));
           }
 
-          _randomImageNames = snapshot.data?.randomImageNames ?? [];
-          _toggleCardToFront();
-
-          return _buildCardListWidget();
+          return _buildCardListWidget(
+              randomImageNames: randomImageNames,
+              onFlipDone: (index) => _onFlipDone(
+                  randomImageNames: randomImageNames,
+                  index: index,
+                  update: (list) => context
+                      .read<FlipCardBloc>()
+                      .add(UpdateCardList(randomImageNames: list))));
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          flipCardCore.reset();
+          context.read<FlipCardBloc>().add(ResetCardList());
         },
         child: const Icon(Icons.refresh),
       ),
     );
   }
 
-  Widget _buildCardListWidget() {
+  Widget _buildCardListWidget({randomImageNames, onFlipDone}) {
     return Center(
       child: Wrap(
         spacing: 4,
         runSpacing: 4,
         children: List.generate(
-          _randomImageNames.length,
+          randomImageNames.length,
           (index) {
-            if (_randomImageNames[index].isEmpty || _cardKeys.isEmpty) {
+            if (randomImageNames[index].isEmpty || _cardKeys.isEmpty) {
               return Container(
                 width: 100,
                 height: 150,
                 color: Colors.transparent,
               );
             }
-
             return FlipCard(
               key: _cardKeys[index],
               onFlipDone: (isFront) => {
-                if (!isFront) {flipCardCore.onFlipDone(index)}
+                if (!isFront) {onFlipDone(index)}
               },
               front: Container(
                 width: 100,
@@ -110,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 width: 100,
                 height: 150,
                 child: Image.asset(
-                  _randomImageNames[index],
+                  randomImageNames[index],
                   fit: BoxFit.cover,
                 ),
               ),
@@ -119,6 +113,25 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+
+  void _onFlipDone({randomImageNames, index, update}) {
+    _frontCardIndexes.add(index);
+
+    if (_frontCardIndexes.length == 2) {
+      String firstCardName = randomImageNames[_frontCardIndexes[0]];
+      String secondCardName = randomImageNames[_frontCardIndexes[1]];
+
+      if (firstCardName == secondCardName) {
+        randomImageNames[_frontCardIndexes[0]] = '';
+        randomImageNames[_frontCardIndexes[1]] = '';
+      }
+
+      _frontCardIndexes.clear();
+      _toggleCardToFront();
+    }
+
+    update(randomImageNames);
   }
 
   void _toggleCardToFront() {

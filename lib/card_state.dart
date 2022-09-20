@@ -11,3 +11,7 @@ class InitialCardState extends CardState {
 class UpdateCardState extends CardState {
   UpdateCardState(List<String> randomImageNames) : super(randomImageNames);
 }
+
+class ResetCardState extends CardState {
+  ResetCardState(List<String> randomImageNames) : super(randomImageNames);
+}
