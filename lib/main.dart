@@ -1,5 +1,5 @@
 import 'package:flip_card/flip_card.dart';
-import 'package:flip_card_game/asset_name.dart';
+import 'package:flip_card_game/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -31,12 +31,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final _imageNames = [
-    AssetImageName.orange,
-    AssetImageName.banana,
-    AssetImageName.apple,
-    AssetImageName.strawberry,
-  ];
+  final _imageNames = Assets.images.values.map((e)=>e.path);
 
   final List<String> _randomImageNames = [];
   final List<GlobalKey<FlipCardState>> _cardKeys = [];
