@@ -40,17 +40,20 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-
-    reset();
+    _reset();
   }
 
-  void reset() {
-    // add 2 times
-    flipCardCore.reset();
-
-    // create global key
+  void _reset() {
+    var cards = flipCardCore.reset();
     _cardKeys.clear();
-    _cardKeys.addAll(flipCardCore.cards.map((_) => GlobalKey<FlipCardState>()));
+    _cardKeys.addAll(cards.map((_) => GlobalKey<FlipCardState>()));
+    _toggleAllCardToFront();
+  }
+
+  @override
+  void dispose() {
+    flipCardCore.dispose();
+    super.dispose();
   }
 
   @override
@@ -59,67 +62,71 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: List.generate(
-            flipCardCore.cards.length,
-            (index) {
-              if (flipCardCore.cards[index].isEmpty) {
-                return Container(
-                  width: 100,
-                  height: 150,
-                  color: Colors.transparent,
-                );
-              }
-              return FlipCard(
-                key: _cardKeys[index],
-                speed: 1000,
-                onFlipDone: (isFront) {
-                  if (isFront) {
-                    flipCardCore.unSelectCard(index);
-                  } else {
-                    flipCardCore.selectCard(index);
-                    if (flipCardCore.selectedCount == 2) {
-                      if (flipCardCore.isEqual()) {
-                        setState(() {});
-                      } else {
-                        _toggleCardToFront();
-                      }
-                    }
+      body: StreamBuilder<List<String>>(
+        stream: flipCardCore.stream,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const SizedBox.shrink();
+          }
+
+          return Center(
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: List.generate(
+                snapshot.requireData.length,
+                (index) {
+                  if (snapshot.requireData[index].isEmpty) {
+                    return Container(
+                      width: 100,
+                      height: 150,
+                      color: Colors.transparent,
+                    );
                   }
+                  return FlipCard(
+                    key: _cardKeys[index],
+                    onFlipDone: (isFront) {
+                      if (isFront) {
+                        flipCardCore.unSelectCard(index);
+                      } else {
+                        flipCardCore.selectCard(index);
+                        if (flipCardCore.selectedCount == 2) {
+                          if (!flipCardCore.isEqual()) {
+                            _toggleAllCardToFront();
+                          }
+                        }
+                      }
+                    },
+                    front: Container(
+                      width: 100,
+                      height: 150,
+                      color: Colors.orange,
+                    ),
+                    back: SizedBox(
+                      width: 100,
+                      height: 150,
+                      child: Image.asset(
+                        snapshot.requireData[index],
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
                 },
-                front: Container(
-                  width: 100,
-                  height: 150,
-                  color: Colors.orange,
-                ),
-                back: SizedBox(
-                  width: 100,
-                  height: 150,
-                  child: Image.asset(
-                    flipCardCore.cards[index],
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          setState(() {
-            reset();
-          });
+          _reset();
         },
         child: const Icon(Icons.refresh),
       ),
     );
   }
 
-  void _toggleCardToFront() {
+  void _toggleAllCardToFront() {
     for (var cardKey in _cardKeys) {
       if (cardKey.currentState == null) continue;
 

@@ -1,21 +1,32 @@
+import 'dart:async';
+
 import 'package:flip_card_game/gen/assets.gen.dart';
 
 class FlipCardCore {
   final _imageNames = Assets.images.values.map((e) => e.path);
 
-  final List<String> cards = [];
+  final StreamController<List<String>> _streamController = StreamController();
+  Stream<List<String>> get stream => _streamController.stream;
+
+  final List<String> _cards = [];
 
   final Set<int> _selectedCardIndexes = {};
   int get selectedCount=>_selectedCardIndexes.length;
 
-  void reset() {
+  List<String> reset() {
+    // reset selected states
+    _selectedCardIndexes.clear();
+
     // add 2 times
-    cards.clear();
-    cards.addAll(_imageNames);
-    cards.addAll(_imageNames);
+    _cards.clear();
+    _cards.addAll(_imageNames);
+    _cards.addAll(_imageNames);
 
     // shuffle
-    cards.shuffle();
+    _cards.shuffle();
+    _streamController.add(_cards);
+
+    return _cards;
   }
 
   void selectCard(int idx) {
@@ -36,12 +47,13 @@ class FlipCardCore {
 
     if (_selectedCardIndexes.length >= 2) {
       int firstCardIdx = _pollSelectedCardIdx();
-      String firstCardName = cards[firstCardIdx];
+      String firstCardName = _cards[firstCardIdx];
       int secondCardIdx = _pollSelectedCardIdx();
-      String secondCardName = cards[secondCardIdx];
+      String secondCardName = _cards[secondCardIdx];
       if (firstCardName == secondCardName) {
-        cards[firstCardIdx] = '';
-        cards[secondCardIdx] = '';
+        _cards[firstCardIdx] = '';
+        _cards[secondCardIdx] = '';
+        _streamController.add(_cards);
         return true;
       }
     }
@@ -53,5 +65,9 @@ class FlipCardCore {
     int polledCardIdx = _selectedCardIndexes.first;
     _selectedCardIndexes.remove(polledCardIdx);
     return polledCardIdx;
+  }
+
+  void dispose(){
+    _streamController.close();
   }
 }
