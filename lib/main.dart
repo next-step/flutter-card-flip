@@ -54,6 +54,8 @@ class _MyHomePageState extends State<MyHomePage> {
         _toggleCardToFront(_cardKeys[event.toFlipCardIndexes[1]]);
       }
     });
+
+    flipCardCore.reset();
   }
 
   @override
