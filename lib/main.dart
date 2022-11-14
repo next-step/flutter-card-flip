@@ -86,7 +86,6 @@ class _MyHomePageState extends State<MyHomePage> {
               }
               return FlipCard(
                 key: _cardKeys[index],
-                speed: 2000,
                 onFlipDone: (isFront) {
                   if (isFront) {
                     flipCardCore.unSelectCard(index);
