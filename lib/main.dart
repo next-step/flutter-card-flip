@@ -1,7 +1,6 @@
-import 'dart:async';
-
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
+
 import 'flip_card_core.dart';
 
 void main() {
@@ -35,19 +34,26 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final FlipCardCore flipCardCore = FlipCardCore();
 
+  List<String> _cards = [];
   final List<GlobalKey<FlipCardState>> _cardKeys = [];
 
   @override
   void initState() {
     super.initState();
-    _reset();
-  }
 
-  void _reset() {
-    var cards = flipCardCore.reset();
-    _cardKeys.clear();
-    _cardKeys.addAll(cards.map((_) => GlobalKey<FlipCardState>()));
-    _toggleAllCardToFront();
+    flipCardCore.stream.listen((event) {
+      if (event is RewriteCardEvent) {
+        _cardKeys.clear();
+        _cardKeys.addAll(event.cards.map((_) => GlobalKey<FlipCardState>()));
+        _cards = event.cards;
+        setState(() {});
+      }
+
+      if (event is FlipToFrontCardEvent) {
+        _toggleCardToFront(_cardKeys[event.toFlipCardIndexes[0]]);
+        _toggleCardToFront(_cardKeys[event.toFlipCardIndexes[1]]);
+      }
+    });
   }
 
   @override
@@ -62,64 +68,51 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: StreamBuilder<List<String>>(
-        stream: flipCardCore.stream,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const SizedBox.shrink();
-          }
-
-          return Center(
-            child: Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: List.generate(
-                snapshot.requireData.length,
+      body: Center(
+        child: Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: List.generate(
+            _cards.length,
                 (index) {
-                  if (snapshot.requireData[index].isEmpty) {
-                    return Container(
-                      width: 100,
-                      height: 150,
-                      color: Colors.transparent,
-                    );
+              if (_cards[index].isEmpty) {
+                return Container(
+                  width: 100,
+                  height: 150,
+                  color: Colors.transparent,
+                );
+              }
+              return FlipCard(
+                key: _cardKeys[index],
+                speed: 2000,
+                onFlipDone: (isFront) {
+                  if (isFront) {
+                    flipCardCore.unSelectCard(index);
+                  } else {
+                    flipCardCore.selectCard(index);
                   }
-                  return FlipCard(
-                    key: _cardKeys[index],
-                    onFlipDone: (isFront) {
-                      if (isFront) {
-                        flipCardCore.unSelectCard(index);
-                      } else {
-                        flipCardCore.selectCard(index);
-                        if (flipCardCore.selectedCount == 2) {
-                          if (!flipCardCore.isEqual()) {
-                            _toggleAllCardToFront();
-                          }
-                        }
-                      }
-                    },
-                    front: Container(
-                      width: 100,
-                      height: 150,
-                      color: Colors.orange,
-                    ),
-                    back: SizedBox(
-                      width: 100,
-                      height: 150,
-                      child: Image.asset(
-                        snapshot.requireData[index],
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  );
                 },
-              ),
-            ),
-          );
-        },
+                front: Container(
+                  width: 100,
+                  height: 150,
+                  color: Colors.orange,
+                ),
+                back: SizedBox(
+                  width: 100,
+                  height: 150,
+                  child: Image.asset(
+                    _cards[index],
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _reset();
+          flipCardCore.reset();
         },
         child: const Icon(Icons.refresh),
       ),
@@ -128,11 +121,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _toggleAllCardToFront() {
     for (var cardKey in _cardKeys) {
-      if (cardKey.currentState == null) continue;
+      _toggleCardToFront(cardKey);
+    }
+  }
 
-      if (!cardKey.currentState!.isFront) {
-        cardKey.currentState!.toggleCard();
-      }
+  void _toggleCardToFront(GlobalKey<FlipCardState> cardKey) {
+    if (cardKey.currentState == null) {
+      return;
+    }
+
+    if (!cardKey.currentState!.isFront) {
+      cardKey.currentState!.toggleCard();
     }
   }
 }
