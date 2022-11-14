@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flip_card_game/gen/assets.gen.dart';
+import 'package:flip_card_game/util/debug_logger.dart';
 
 abstract class FlipCardEvent {
   const FlipCardEvent();
@@ -47,20 +48,20 @@ class FlipCardCore {
 
   void selectCard(int idx) {
     _selectedCardIndexes.add(idx);
-    print('selectCard index-${idx}');
-    print(_selectedCardIndexes);
+    debugPrint('selectCard index-${idx}');
+    debugPrint(_selectedCardIndexes);
     _isEqual();
   }
 
   void unSelectCard(int idx) {
     _selectedCardIndexes.remove(idx);
-    print('unSelectCard index-${idx}');
-    print(_selectedCardIndexes);
+    debugPrint('unSelectCard index-${idx}');
+    debugPrint(_selectedCardIndexes);
   }
 
   void _isEqual() {
-    print('_checkCardIsEqual');
-    print(_selectedCardIndexes);
+    debugPrint('_checkCardIsEqual');
+    debugPrint(_selectedCardIndexes);
 
     if (_selectedCardIndexes.length >= 2) {
       int firstCardIdx = _pollSelectedCardIdx();
