@@ -60,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
-    flipCardCore.dispose();
+    flipCardCore.close();
     super.dispose();
   }
 
@@ -118,12 +118,6 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.refresh),
       ),
     );
-  }
-
-  void _toggleAllCardToFront() {
-    for (var cardKey in _cardKeys) {
-      _toggleCardToFront(cardKey);
-    }
   }
 
   void _toggleCardToFront(GlobalKey<FlipCardState> cardKey) {

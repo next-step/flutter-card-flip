@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bloc/bloc.dart';
 import 'package:flip_card_game/gen/assets.gen.dart';
 import 'package:flip_card_game/util/debug_logger.dart';
 
@@ -19,23 +20,19 @@ class FlipToFrontCardEvent extends FlipCardEvent {
   const FlipToFrontCardEvent({required this.toFlipCardIndexes});
 }
 
-class FlipCardCore {
-  final _imageNames = Assets.images.values.map((e) => e.path);
-
-  final StreamController<FlipCardEvent> _streamController = StreamController();
-
-  Stream<FlipCardEvent> get stream => _streamController.stream;
-
-  final List<String> _cards = [];
+class FlipCardCore extends Cubit<FlipCardEvent> {
+  static final List<String> _imageNames =
+      Assets.images.values.map((e) => e.path).toList();
 
   final Set<int> _selectedCardIndexes = {};
 
   int get selectedCount => _selectedCardIndexes.length;
 
-  void reset() {
-    // reset selected states
-    _selectedCardIndexes.clear();
+  static final List<String> _cards = [];
 
+  FlipCardCore() : super(_getInitCards());
+
+  static RewriteCardEvent _getInitCards() {
     // add 2 times
     _cards.clear();
     _cards.addAll(_imageNames);
@@ -43,7 +40,14 @@ class FlipCardCore {
 
     // shuffle
     _cards.shuffle();
-    _streamController.add(RewriteCardEvent(cards: _cards));
+    return RewriteCardEvent(cards: _cards);
+  }
+
+  void reset() {
+    // reset selected states
+    _selectedCardIndexes.clear();
+
+    emit(_getInitCards());
   }
 
   void selectCard(int idx) {
@@ -71,9 +75,9 @@ class FlipCardCore {
       if (firstCardName == secondCardName) {
         _cards[firstCardIdx] = '';
         _cards[secondCardIdx] = '';
-        _streamController.add(RewriteCardEvent(cards: _cards));
+        emit(RewriteCardEvent(cards: _cards));
       }
-      _streamController.add(FlipToFrontCardEvent(
+      emit(FlipToFrontCardEvent(
           toFlipCardIndexes: [firstCardIdx, secondCardIdx]));
     }
   }
@@ -82,9 +86,5 @@ class FlipCardCore {
     int polledCardIdx = _selectedCardIndexes.first;
     _selectedCardIndexes.remove(polledCardIdx);
     return polledCardIdx;
-  }
-
-  void dispose() {
-    _streamController.close();
   }
 }
