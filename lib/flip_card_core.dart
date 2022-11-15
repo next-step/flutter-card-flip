@@ -2,7 +2,23 @@ import 'package:bloc/bloc.dart';
 import 'package:flip_card_game/gen/assets.gen.dart';
 import 'package:flip_card_game/util/debug_logger.dart';
 
-class FlipCardCore extends Cubit<List<String>> {
+abstract class CardEvent {
+  const CardEvent();
+}
+
+class RewriteCardEvent extends CardEvent {}
+
+class SelectCardEvent extends CardEvent {
+  final int toFlipCardIndex;
+  final bool isSelect;
+
+  const SelectCardEvent({
+    required this.toFlipCardIndex,
+    required this.isSelect,
+  });
+}
+
+class FlipCardCore extends Bloc<CardEvent, List<String>> {
   static final List<String> _imageNames =
       Assets.images.values.map((e) => e.path).toList();
 
@@ -10,7 +26,17 @@ class FlipCardCore extends Cubit<List<String>> {
 
   int get selectedCount => _selectedCardIndexes.length;
 
-  FlipCardCore() : super(_getInitCards());
+  FlipCardCore() : super(_getInitCards()) {
+    on<RewriteCardEvent>((event, emit) => _reset(emit));
+
+    on<SelectCardEvent>((event, emit) {
+      if (event.isSelect) {
+        _selectCard(event.toFlipCardIndex, emit);
+      } else {
+        _unSelectCard(event.toFlipCardIndex);
+      }
+    });
+  }
 
   static List<String> _getInitCards() {
     // add 2 times
@@ -24,27 +50,27 @@ class FlipCardCore extends Cubit<List<String>> {
     return _cards;
   }
 
-  void reset() {
+  void _reset(emit) {
     // reset selected states
     _selectedCardIndexes.clear();
 
     emit(_getInitCards());
   }
 
-  void selectCard(int idx) {
+  void _selectCard(int idx, emit) {
     _selectedCardIndexes.add(idx);
     debugPrint('selectCard index-${idx}');
     debugPrint(_selectedCardIndexes);
-    _isEqual();
+    _isEqual(emit);
   }
 
-  void unSelectCard(int idx) {
+  void _unSelectCard(int idx) {
     _selectedCardIndexes.remove(idx);
     debugPrint('unSelectCard index-$idx');
     debugPrint(_selectedCardIndexes);
   }
 
-  void _isEqual() {
+  void _isEqual(emit) {
     debugPrint('_checkCardIsEqual');
     debugPrint(_selectedCardIndexes);
 

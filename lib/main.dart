@@ -81,11 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
               return FlipCard(
                 key: _cardKeys[index],
                 onFlipDone: (isFront) {
-                  if (isFront) {
-                    flipCardCore.unSelectCard(index);
-                  } else {
-                    flipCardCore.selectCard(index);
-                  }
+                  flipCardCore.add(SelectCardEvent(
+                    toFlipCardIndex: index,
+                    isSelect: !isFront,
+                  ));
                 },
                 front: Container(
                   width: 100,
@@ -107,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          flipCardCore.reset();
+          flipCardCore.add(RewriteCardEvent());
         },
         child: const Icon(Icons.refresh),
       ),
