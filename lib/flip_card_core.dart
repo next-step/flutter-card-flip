@@ -1,67 +1,89 @@
 import 'package:bloc/bloc.dart';
 import 'package:flip_card_game/gen/assets.gen.dart';
+import 'package:flip_card_game/model/card.dart';
 import 'package:flip_card_game/util/debug_logger.dart';
 
-abstract class CardEvent {
-  const CardEvent();
+class RewriteCardEvent {
+  final String name;
+
+  const RewriteCardEvent({required this.name});
 }
 
-class RewriteCardEvent extends CardEvent {}
-
-class SelectCardEvent extends CardEvent {
-  final int toFlipCardIndex;
-  final bool isSelect;
-
-  const SelectCardEvent({
-    required this.toFlipCardIndex,
-    required this.isSelect,
-  });
+class CardBloc extends Bloc<RewriteCardEvent, ImageCard> {
+  CardBloc(String name) : super(ImageCard(name: name)) {
+    on<RewriteCardEvent>((event, emit) => emit(ImageCard(name: event.name)));
+  }
 }
 
-class FlipCardCore extends Bloc<CardEvent, List<String>> {
+class FlipToFrontCardEvent {
+  final List<int> flipIndexes;
+
+  const FlipToFrontCardEvent({required this.flipIndexes});
+}
+
+class CardListBloc extends Bloc<FlipToFrontCardEvent, List<int>> {
+  CardListBloc() : super([]) {
+    on<FlipToFrontCardEvent>((event, emit) => emit(event.flipIndexes));
+  }
+}
+
+class FlipCardCore {
   static final List<String> _imageNames =
       Assets.images.values.map((e) => e.path).toList();
+
+  final CardListBloc _cardListBloc = CardListBloc();
+
+  Stream<List<int>> get flipFrontStream => _cardListBloc.stream;
+
+  final List<CardBloc> _cards = _getInitCards();
+
+  List<Stream<ImageCard>> get cardStreams =>
+      _cards.map((e) => e.stream).toList();
 
   final Set<int> _selectedCardIndexes = {};
 
   int get selectedCount => _selectedCardIndexes.length;
 
-  FlipCardCore() : super(_getInitCards()) {
-    on<RewriteCardEvent>((event, emit) => _reset(emit));
+  int get length => _cards.length;
 
-    on<SelectCardEvent>((event, emit) {
-      if (event.isSelect) {
-        _selectCard(event.toFlipCardIndex, emit);
-      } else {
-        _unSelectCard(event.toFlipCardIndex);
-      }
-    });
+  static List<CardBloc> _getInitCards() {
+    List<CardBloc> cards = [];
+    cards.addAll(_imageNames.map((e) => CardBloc(e)));
+    cards.addAll(_imageNames.map((e) => CardBloc(e)));
+    return cards;
   }
 
-  static List<String> _getInitCards() {
-    // add 2 times
-    List<String> _cards = [];
-    _cards.clear();
-    _cards.addAll(_imageNames);
-    _cards.addAll(_imageNames);
-
-    // shuffle
-    _cards.shuffle();
-    return _cards;
-  }
-
-  void _reset(emit) {
+  void reset() {
     // reset selected states
     _selectedCardIndexes.clear();
 
-    emit(_getInitCards());
+    List<String> cards = [];
+    cards.addAll(_imageNames);
+    cards.addAll(_imageNames);
+
+    // shuffle
+    cards.shuffle();
+
+    for (int i = 0; i < cards.length; i++) {
+      _cards[i].add(RewriteCardEvent(name: cards[i]));
+    }
+    _cardListBloc.add(FlipToFrontCardEvent(
+        flipIndexes: List.generate(_cards.length, (index) => index)));
   }
 
-  void _selectCard(int idx, emit) {
+  void toggleCard(int idx, bool isSelect) {
+    if (isSelect) {
+      _selectCard(idx);
+    } else {
+      _unSelectCard(idx);
+    }
+  }
+
+  void _selectCard(int idx) {
     _selectedCardIndexes.add(idx);
     debugPrint('selectCard index-${idx}');
     debugPrint(_selectedCardIndexes);
-    _isEqual(emit);
+    _isEqual();
   }
 
   void _unSelectCard(int idx) {
@@ -70,23 +92,23 @@ class FlipCardCore extends Bloc<CardEvent, List<String>> {
     debugPrint(_selectedCardIndexes);
   }
 
-  void _isEqual(emit) {
+  void _isEqual() {
     debugPrint('_checkCardIsEqual');
     debugPrint(_selectedCardIndexes);
 
     if (_selectedCardIndexes.length >= 2) {
       int firstCardIdx = _pollSelectedCardIdx();
-      String firstCardName = state[firstCardIdx];
+      String firstCardName = _cards[firstCardIdx].state.name;
       int secondCardIdx = _pollSelectedCardIdx();
-      String secondCardName = state[secondCardIdx];
-      List<String> cards = [];
+      String secondCardName = _cards[secondCardIdx].state.name;
       if (firstCardName == secondCardName) {
-        state[firstCardIdx] = '';
-        state[secondCardIdx] = '';
+        _cards[firstCardIdx].add(const RewriteCardEvent(name: ''));
+        _cards[secondCardIdx].add(const RewriteCardEvent(name: ''));
         debugPrint('correct!');
+        return;
       }
-      cards.addAll(state);
-      emit(cards);
+      debugPrint('incorrect!');
+      _cardListBloc.add(FlipToFrontCardEvent(flipIndexes: [firstCardIdx, secondCardIdx]));
     }
   }
 

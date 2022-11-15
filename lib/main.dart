@@ -2,6 +2,8 @@ import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 
 import 'flip_card_core.dart';
+import 'gen/assets.gen.dart';
+import 'model/card.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,27 +36,25 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final FlipCardCore flipCardCore = FlipCardCore();
 
-  List<String> _cards = [];
-  final List<GlobalKey<FlipCardState>> _cardKeys = [];
+  late final List<GlobalKey<FlipCardState>> _cardKeys;
 
   @override
   void initState() {
     super.initState();
 
-    _cards = flipCardCore.state;
-    _cardKeys.clear();
-    _cardKeys.addAll(flipCardCore.state.map((_) => GlobalKey<FlipCardState>()));
+    _cardKeys = List.generate(
+        flipCardCore.length, (index) => GlobalKey<FlipCardState>());
 
-    flipCardCore.stream.listen((event) {
-      _cards = event;
-      _cardKeys.forEach(_toggleCardToFront);
-      setState(() {});
+    flipCardCore.flipFrontStream.listen((event) {
+      for (var index in event) {
+        _toggleCardToFront(_cardKeys[index]);
+      }
     });
+    flipCardCore.reset();
   }
 
   @override
   void dispose() {
-    flipCardCore.close();
     super.dispose();
   }
 
@@ -69,44 +69,43 @@ class _MyHomePageState extends State<MyHomePage> {
           spacing: 4,
           runSpacing: 4,
           children: List.generate(
-            _cards.length,
-            (index) {
-              if (_cards[index].isEmpty) {
-                return Container(
-                  width: 100,
-                  height: 150,
-                  color: Colors.transparent,
-                );
-              }
-              return FlipCard(
-                key: _cardKeys[index],
-                onFlipDone: (isFront) {
-                  flipCardCore.add(SelectCardEvent(
-                    toFlipCardIndex: index,
-                    isSelect: !isFront,
-                  ));
-                },
-                front: Container(
-                  width: 100,
-                  height: 150,
-                  color: Colors.orange,
-                ),
-                back: SizedBox(
-                  width: 100,
-                  height: 150,
-                  child: Image.asset(
-                    _cards[index],
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            },
+            flipCardCore.length,
+            (index) => StreamBuilder<ImageCard>(
+                stream: flipCardCore.cardStreams[index],
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.requireData.name.isEmpty) {
+                    return Container(
+                      width: 100,
+                      height: 150,
+                      color: Colors.transparent,
+                    );
+                  }
+                  return FlipCard(
+                    key: _cardKeys[index],
+                    onFlipDone: (isFront) {
+                      flipCardCore.toggleCard(index, !isFront);
+                    },
+                    front: Container(
+                      width: 100,
+                      height: 150,
+                      color: Colors.orange,
+                    ),
+                    back: SizedBox(
+                      width: 100,
+                      height: 150,
+                      child: Image.asset(
+                        snapshot.requireData.name,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                }),
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          flipCardCore.add(RewriteCardEvent());
+          flipCardCore.reset();
         },
         child: const Icon(Icons.refresh),
       ),
