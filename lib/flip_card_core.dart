@@ -1,26 +1,8 @@
-import 'dart:async';
-
 import 'package:bloc/bloc.dart';
 import 'package:flip_card_game/gen/assets.gen.dart';
 import 'package:flip_card_game/util/debug_logger.dart';
 
-abstract class FlipCardEvent {
-  const FlipCardEvent();
-}
-
-class RewriteCardEvent extends FlipCardEvent {
-  final List<String> cards;
-
-  const RewriteCardEvent({required this.cards});
-}
-
-class FlipToFrontCardEvent extends FlipCardEvent {
-  final List<int> toFlipCardIndexes;
-
-  const FlipToFrontCardEvent({required this.toFlipCardIndexes});
-}
-
-class FlipCardCore extends Cubit<FlipCardEvent> {
+class FlipCardCore extends Cubit<List<String>> {
   static final List<String> _imageNames =
       Assets.images.values.map((e) => e.path).toList();
 
@@ -28,19 +10,18 @@ class FlipCardCore extends Cubit<FlipCardEvent> {
 
   int get selectedCount => _selectedCardIndexes.length;
 
-  static final List<String> _cards = [];
-
   FlipCardCore() : super(_getInitCards());
 
-  static RewriteCardEvent _getInitCards() {
+  static List<String> _getInitCards() {
     // add 2 times
+    List<String> _cards = [];
     _cards.clear();
     _cards.addAll(_imageNames);
     _cards.addAll(_imageNames);
 
     // shuffle
     _cards.shuffle();
-    return RewriteCardEvent(cards: _cards);
+    return _cards;
   }
 
   void reset() {
@@ -59,7 +40,7 @@ class FlipCardCore extends Cubit<FlipCardEvent> {
 
   void unSelectCard(int idx) {
     _selectedCardIndexes.remove(idx);
-    debugPrint('unSelectCard index-${idx}');
+    debugPrint('unSelectCard index-$idx');
     debugPrint(_selectedCardIndexes);
   }
 
@@ -69,16 +50,17 @@ class FlipCardCore extends Cubit<FlipCardEvent> {
 
     if (_selectedCardIndexes.length >= 2) {
       int firstCardIdx = _pollSelectedCardIdx();
-      String firstCardName = _cards[firstCardIdx];
+      String firstCardName = state[firstCardIdx];
       int secondCardIdx = _pollSelectedCardIdx();
-      String secondCardName = _cards[secondCardIdx];
+      String secondCardName = state[secondCardIdx];
+      List<String> cards = [];
       if (firstCardName == secondCardName) {
-        _cards[firstCardIdx] = '';
-        _cards[secondCardIdx] = '';
-        emit(RewriteCardEvent(cards: _cards));
+        state[firstCardIdx] = '';
+        state[secondCardIdx] = '';
+        debugPrint('correct!');
       }
-      emit(FlipToFrontCardEvent(
-          toFlipCardIndexes: [firstCardIdx, secondCardIdx]));
+      cards.addAll(state);
+      emit(cards);
     }
   }
 

@@ -41,21 +41,15 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
+    _cards = flipCardCore.state;
+    _cardKeys.clear();
+    _cardKeys.addAll(flipCardCore.state.map((_) => GlobalKey<FlipCardState>()));
+
     flipCardCore.stream.listen((event) {
-      if (event is RewriteCardEvent) {
-        _cardKeys.clear();
-        _cardKeys.addAll(event.cards.map((_) => GlobalKey<FlipCardState>()));
-        _cards = event.cards;
-        setState(() {});
-      }
-
-      if (event is FlipToFrontCardEvent) {
-        _toggleCardToFront(_cardKeys[event.toFlipCardIndexes[0]]);
-        _toggleCardToFront(_cardKeys[event.toFlipCardIndexes[1]]);
-      }
+      _cards = event;
+      _cardKeys.forEach(_toggleCardToFront);
+      setState(() {});
     });
-
-    flipCardCore.reset();
   }
 
   @override
@@ -76,7 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
           runSpacing: 4,
           children: List.generate(
             _cards.length,
-                (index) {
+            (index) {
               if (_cards[index].isEmpty) {
                 return Container(
                   width: 100,
