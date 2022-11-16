@@ -68,9 +68,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
       body: Center(
         child: Wrap(
           spacing: 4,
@@ -108,10 +105,13 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.orange,
         onPressed: () {
           _core.reset();
         },
-        child: const Icon(Icons.refresh),
+        child: const Icon(
+          Icons.refresh,
+        ),
       ),
     );
   }
