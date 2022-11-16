@@ -66,7 +66,7 @@ class FlipCardCore {
     if (_selectedCardIndexes.length < 2) {
       return;
     }
-    
+
     final int firstCardIdx = _pollSelectedCardIdx();
     final String firstCardName = _cards[firstCardIdx];
     final int secondCardIdx = _pollSelectedCardIdx();
@@ -81,9 +81,14 @@ class FlipCardCore {
   }
 
   int _pollSelectedCardIdx() {
-    final int polledCardIdx = _selectedCardIndexes.first;
-    _selectedCardIndexes.remove(polledCardIdx);
-    return polledCardIdx;
+    try {
+      final int polledCardIdx = _selectedCardIndexes.first;
+      _selectedCardIndexes.remove(polledCardIdx);
+      return polledCardIdx;
+    } on StateError catch (e) {
+      debugPrint('_selectedCardIndexes is Empty!!');
+      rethrow;
+    }
   }
 
   void dispose() {
