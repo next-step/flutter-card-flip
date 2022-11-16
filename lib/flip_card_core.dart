@@ -63,19 +63,21 @@ class FlipCardCore {
     debugPrint('_checkCardIsEqual');
     debugPrint(_selectedCardIndexes);
 
-    if (_selectedCardIndexes.length >= 2) {
-      int firstCardIdx = _pollSelectedCardIdx();
-      String firstCardName = _cards[firstCardIdx];
-      int secondCardIdx = _pollSelectedCardIdx();
-      String secondCardName = _cards[secondCardIdx];
-      if (firstCardName == secondCardName) {
-        _cards[firstCardIdx] = '';
-        _cards[secondCardIdx] = '';
-        _streamController.add(RewriteCardEvent(cards: _cards));
-      }
-      _streamController.add(FlipToFrontCardEvent(
-          toFlipCardIndexes: [firstCardIdx, secondCardIdx]));
+    if (_selectedCardIndexes.length < 2) {
+      return;
     }
+    
+    int firstCardIdx = _pollSelectedCardIdx();
+    String firstCardName = _cards[firstCardIdx];
+    int secondCardIdx = _pollSelectedCardIdx();
+    String secondCardName = _cards[secondCardIdx];
+    if (firstCardName == secondCardName) {
+      _cards[firstCardIdx] = '';
+      _cards[secondCardIdx] = '';
+      _streamController.add(RewriteCardEvent(cards: _cards));
+    }
+    _streamController.add(
+        FlipToFrontCardEvent(toFlipCardIndexes: [firstCardIdx, secondCardIdx]));
   }
 
   int _pollSelectedCardIdx() {
