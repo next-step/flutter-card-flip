@@ -50,7 +50,7 @@ class FlipCardCore {
     _selectedCardIndexes.add(idx);
     debugPrint('selectCard index-${idx}');
     debugPrint(_selectedCardIndexes);
-    _isEqual();
+    _checkSelectedCards();
   }
 
   void unSelectCard(int idx) {
@@ -59,7 +59,7 @@ class FlipCardCore {
     debugPrint(_selectedCardIndexes);
   }
 
-  void _isEqual() {
+  void _checkSelectedCards() {
     debugPrint('_checkCardIsEqual');
     debugPrint(_selectedCardIndexes);
 
