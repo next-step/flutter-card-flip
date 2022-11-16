@@ -1,6 +1,7 @@
 import 'package:flip_card/flip_card.dart';
-import 'package:flip_card_game/asset_name.dart';
 import 'package:flutter/material.dart';
+
+import 'flip_card_core.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,37 +32,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final _imageNames = [
-    AssetImageName.orange,
-    AssetImageName.banana,
-    AssetImageName.apple,
-    AssetImageName.strawberry,
-  ];
+  final flipCardCore = FlipCardCore();
 
-  final List<String> _randomImageNames = [];
-  final List<GlobalKey<FlipCardState>> _cardKeys = [];
-  int _frontCardCount = 0;
-  final List<int> _frontCardIndexes = [];
+  List<String> _cardNames = [];
+  List<GlobalKey<FlipCardState>> _cardKeys = [];
 
   @override
   void initState() {
     super.initState();
 
-    reset();
-  }
+    flipCardCore.reset();
 
-  void reset() {
-    // add 2 times
-    _randomImageNames.clear();
-    _randomImageNames.addAll(_imageNames);
-    _randomImageNames.addAll(_imageNames);
-
-    // shuffle
-    _randomImageNames.shuffle();
-
-    // create global key
-    _cardKeys.clear();
-    _cardKeys.addAll(_randomImageNames.map((_) => GlobalKey<FlipCardState>()));
+    _cardNames = flipCardCore.cardNames;
+    _cardKeys = flipCardCore.cardKeys;
   }
 
   @override
@@ -75,54 +58,30 @@ class _MyHomePageState extends State<MyHomePage> {
           spacing: 4,
           runSpacing: 4,
           children: List.generate(
-            _randomImageNames.length,
+            _cardNames.length,
             (index) {
-              if (_randomImageNames[index].isEmpty) {
+              if (_cardNames[index].isEmpty) {
                 return Container(
                   width: 100,
                   height: 150,
                   color: Colors.transparent,
                 );
               }
+
               return FlipCard(
                 key: _cardKeys[index],
-                onFlip: () {
-                  _frontCardCount++;
-                  _frontCardIndexes.add(index);
-                },
-                onFlipDone: (bool) {
-                  if (_frontCardCount == 2) {
-                    _toggleCardToFront();
-
-                    _checkCardIsEqual();
-
-                    _frontCardCount = 0;
-
-                    if (_frontCardIndexes.length >= 2) {
-                      String firstCardName = _randomImageNames[_frontCardIndexes[0]];
-                      String secondCardName = _randomImageNames[_frontCardIndexes[1]];
-                      if (firstCardName == secondCardName) {
-                        _randomImageNames[_frontCardIndexes[0]] = '';
-                        _randomImageNames[_frontCardIndexes[1]] = '';
-
-                        setState(() {});
-                      }
-                    }
-
-                    _frontCardIndexes.clear();
-                    _frontCardCount = 0;
-                  }
-                },
+                onFlip: () => flipCardCore.handleFlip(index),
+                onFlipDone: (bool) => flipCardCore.handleFlipDone(setState),
                 front: Container(
                   width: 100,
                   height: 150,
                   color: Colors.orange,
                 ),
-                back: Container(
+                back: SizedBox(
                   width: 100,
                   height: 150,
                   child: Image.asset(
-                    _randomImageNames[index],
+                    _cardNames[index],
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -132,40 +91,13 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.refresh),
         onPressed: () {
           setState(() {
-            reset();
+            flipCardCore.reset();
           });
         },
-        child: const Icon(Icons.refresh),
       ),
     );
-  }
-
-  void _toggleCardToFront() {
-    for (var cardKey in _cardKeys) {
-      if (cardKey.currentState == null) return;
-
-      if (!cardKey.currentState!.isFront) {
-        cardKey.currentState!.toggleCard();
-      }
-    }
-  }
-
-  void _checkCardIsEqual() {
-    print('_checkCardIsEqual');
-    print(_frontCardIndexes);
-    if (_frontCardIndexes.length >= 2) {
-      String firstCardName = _randomImageNames[_frontCardIndexes[0]];
-      String secondCardName = _randomImageNames[_frontCardIndexes[1]];
-      if (firstCardName == secondCardName) {
-        _randomImageNames[_frontCardIndexes[0]] = '';
-        _randomImageNames[_frontCardIndexes[1]] = '';
-
-        setState(() {});
-      }
-    }
-
-    _frontCardIndexes.clear();
   }
 }
