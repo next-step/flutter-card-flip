@@ -47,16 +47,25 @@ class FlipCardCore {
   }
 
   void selectCard(int idx) {
+    _assertIndex(idx);
     _selectedCardIndexes.add(idx);
-    debugPrint('selectCard index-${idx}');
+    debugPrint('selectCard index-$idx');
     debugPrint(_selectedCardIndexes);
     _checkSelectedCards();
   }
 
   void unSelectCard(int idx) {
+    _assertIndex(idx);
     _selectedCardIndexes.remove(idx);
-    debugPrint('unSelectCard index-${idx}');
+    debugPrint('unSelectCard index-$idx');
     debugPrint(_selectedCardIndexes);
+  }
+
+  void _assertIndex(int idx) {
+    if (idx < 0 || _cards.length <= idx) {
+      debugPrint('select index is out of range!! idx=$idx');
+      throw ArgumentError('index out of range');
+    }
   }
 
   void _checkSelectedCards() {
