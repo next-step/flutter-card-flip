@@ -42,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     _core.stream.listen((event) {
-      if (event is InitialEvent) {
+      if (event is InitialState) {
         setState(() {
           _randomImageNames = event.randomImageNames;
           _cardKeys.addAll(_randomImageNames.map((e) => GlobalKey<FlipCardState>()));
@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
 
-      if (event is CheckCardEvent) {
+      if (event is CheckCardState) {
         setState(() {
           _randomImageNames = event.randomImageNames;
           _toggleCardToFront();

@@ -2,16 +2,16 @@ import 'dart:async';
 
 import 'package:flip_card_game/asset_name.dart';
 
-abstract class FlipCardEvent {}
+abstract class FlipCardGameState {}
 
-class InitialEvent extends FlipCardEvent {
-  InitialEvent({required this.randomImageNames});
+class InitialState extends FlipCardGameState {
+  InitialState({required this.randomImageNames});
 
   final List<String> randomImageNames;
 }
 
-class CheckCardEvent extends FlipCardEvent {
-  CheckCardEvent({required this.randomImageNames});
+class CheckCardState extends FlipCardGameState {
+  CheckCardState({required this.randomImageNames});
 
   final List<String> randomImageNames;
 }
@@ -35,9 +35,9 @@ class FlipCardCore {
 
   final List<String> _randomImageNames = [];
 
-  Stream<FlipCardEvent> get stream => _streamController.stream;
+  Stream<FlipCardGameState> get stream => _streamController.stream;
 
-  final StreamController<FlipCardEvent> _streamController = StreamController.broadcast();
+  final StreamController<FlipCardGameState> _streamController = StreamController.broadcast();
 
   void reset() {
     // add 2 times
@@ -48,7 +48,7 @@ class FlipCardCore {
     // shuffle
     _randomImageNames.shuffle();
 
-    _streamController.add(InitialEvent(randomImageNames: _randomImageNames));
+    _streamController.add(InitialState(randomImageNames: _randomImageNames));
   }
 
   void toggleCard(int index) {
@@ -69,7 +69,7 @@ class FlipCardCore {
 
     _backCardIndexes.clear();
 
-    _streamController.add(CheckCardEvent(randomImageNames: _randomImageNames));
+    _streamController.add(CheckCardState(randomImageNames: _randomImageNames));
   }
 
   void dispose() {
