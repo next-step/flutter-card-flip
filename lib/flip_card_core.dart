@@ -72,6 +72,7 @@ class FlipCardCore {
   }
 
   void toggleCard(int idx, bool isSelect) {
+    _assertIndex(idx);
     if (isSelect) {
       _selectCard(idx);
     } else {
@@ -81,9 +82,9 @@ class FlipCardCore {
 
   void _selectCard(int idx) {
     _selectedCardIndexes.add(idx);
-    debugPrint('selectCard index-${idx}');
+    debugPrint('selectCard index-$idx');
     debugPrint(_selectedCardIndexes);
-    _isEqual();
+    _checkSelectedCards();
   }
 
   void _unSelectCard(int idx) {
@@ -92,29 +93,50 @@ class FlipCardCore {
     debugPrint(_selectedCardIndexes);
   }
 
-  void _isEqual() {
-    debugPrint('_checkCardIsEqual');
-    debugPrint(_selectedCardIndexes);
-
-    if (_selectedCardIndexes.length >= 2) {
-      int firstCardIdx = _pollSelectedCardIdx();
-      String firstCardName = _cards[firstCardIdx].state.name;
-      int secondCardIdx = _pollSelectedCardIdx();
-      String secondCardName = _cards[secondCardIdx].state.name;
-      if (firstCardName == secondCardName) {
-        _cards[firstCardIdx].add(const RewriteCardEvent(name: ''));
-        _cards[secondCardIdx].add(const RewriteCardEvent(name: ''));
-        debugPrint('correct!');
-        return;
-      }
-      debugPrint('incorrect!');
-      _cardListBloc.add(FlipToFrontCardEvent(flipIndexes: [firstCardIdx, secondCardIdx]));
+  void _assertIndex(int idx) {
+    if (idx < 0 || _cards.length <= idx) {
+      debugPrint('select index is out of range!! idx=$idx');
+      throw ArgumentError('index out of range');
     }
   }
 
+  void _checkSelectedCards() {
+    debugPrint('_checkCardIsEqual');
+    debugPrint(_selectedCardIndexes);
+
+    if (_selectedCardIndexes.length < 2) {
+      return;
+    }
+
+    final int firstCardIdx = _pollSelectedCardIdx();
+    final String firstCardName = _cards[firstCardIdx].state.name;
+    final int secondCardIdx = _pollSelectedCardIdx();
+    final String secondCardName = _cards[secondCardIdx].state.name;
+    if (firstCardName == secondCardName) {
+      _cards[firstCardIdx].add(const RewriteCardEvent(name: ''));
+      _cards[secondCardIdx].add(const RewriteCardEvent(name: ''));
+      debugPrint('correct!');
+      return;
+    }
+    debugPrint('incorrect!');
+    _cardListBloc.add(
+      FlipToFrontCardEvent(
+        flipIndexes: [
+          firstCardIdx,
+          secondCardIdx,
+        ],
+      ),
+    );
+  }
+
   int _pollSelectedCardIdx() {
-    int polledCardIdx = _selectedCardIndexes.first;
-    _selectedCardIndexes.remove(polledCardIdx);
-    return polledCardIdx;
+    try {
+      final int polledCardIdx = _selectedCardIndexes.first;
+      _selectedCardIndexes.remove(polledCardIdx);
+      return polledCardIdx;
+    } on StateError catch (e) {
+      debugPrint('_selectedCardIndexes is Empty!!');
+      rethrow;
+    }
   }
 }
